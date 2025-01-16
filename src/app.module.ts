@@ -6,9 +6,11 @@ import { EnvValidationSchema } from './validations/env.validation';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from './modules/product/product.module';
 import mongoose from 'mongoose';
+import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
   imports: [
+    // Config Module
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV
@@ -20,6 +22,8 @@ import mongoose from 'mongoose';
         abortEarly: true,
       },
     }),
+
+    // MongoDB Module
     MongooseModule.forRootAsync({
       useFactory: async () => {
         const logger = new Logger('MongoDB');
@@ -37,6 +41,8 @@ import mongoose from 'mongoose';
         };
       },
     }),
+
+    RedisModule,
     ProductModule,
   ],
   controllers: [AppController],
