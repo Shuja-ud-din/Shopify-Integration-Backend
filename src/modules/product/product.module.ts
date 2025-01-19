@@ -1,16 +1,13 @@
-import { Get, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
+import { ShopifyService } from '../shopify/shopify.service';
+import { ShopifyModule } from '../shopify/shopify.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  providers: [ProductService],
+  providers: [ProductService, ShopifyService],
   controllers: [ProductController],
+  imports: [ShopifyModule, RedisModule],
 })
-export class ProductModule {
-  constructor(private readonly productService: ProductService) {}
-
-  @Get('test')
-  async test() {
-    return this.productService.test();
-  }
-}
+export class ProductModule {}

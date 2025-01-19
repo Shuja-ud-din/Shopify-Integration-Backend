@@ -1,23 +1,24 @@
 import { Module } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Redis } from 'ioredis';
 
 const logger = new Logger('RedisProvider');
 
 const RedisProvider = {
   provide: 'REDIS_CLIENT',
-  useFactory: async () => {
-    const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_DB } = process.env;
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService) => {
+    const { host, port, password } = configService.get('redis');
 
     const client = new Redis({
-      host: REDIS_HOST,
-      port: Number(REDIS_PORT),
-      password: REDIS_PASSWORD,
-      db: Number(REDIS_DB),
+      host,
+      port: Number(port),
+      password,
     });
 
     client.on('connect', () => {
-      logger.log(`Redis connected successfully to ${REDIS_HOST}:${REDIS_PORT}`);
+      logger.log(`Redis connected successfully to ${host}:${port}`);
     });
 
     client.on('error', (err) => {

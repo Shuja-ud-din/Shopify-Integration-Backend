@@ -1,12 +1,19 @@
 import { Logger, Module } from '@nestjs/common';
-import { AppController } from './app.controller';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import mongoose from 'mongoose';
+
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { AppController } from './app.controller';
 import { EnvValidationSchema } from './validations/env.validation';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from './modules/product/product.module';
-import mongoose from 'mongoose';
 import { RedisModule } from './modules/redis/redis.module';
+import { AuthModule } from './modules/auth/auth.module';
+import appConfig from './common/config/app.config';
+import jwtConfig from './common/config/jwt.config';
+import dbConfig from './common/config/db.config';
+import redisConfig from './common/config/redis.config';
+import { SeedModule } from './modules/seed/seed.module';
 
 @Module({
   imports: [
@@ -16,6 +23,7 @@ import { RedisModule } from './modules/redis/redis.module';
       envFilePath: process.env.NODE_ENV
         ? `.env.${process.env.NODE_ENV || 'development'}`
         : '.env',
+      load: [appConfig, dbConfig, jwtConfig, redisConfig],
       validationSchema: EnvValidationSchema,
       validationOptions: {
         allowUnknown: true,
@@ -25,9 +33,10 @@ import { RedisModule } from './modules/redis/redis.module';
 
     // MongoDB Module
     MongooseModule.forRootAsync({
-      useFactory: async () => {
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
         const logger = new Logger('MongoDB');
-        const connectionString = process.env.MONGO_URI;
+        const connectionString = configService.get('database.mongoUrl');
 
         try {
           await mongoose.connect(connectionString);
@@ -44,6 +53,8 @@ import { RedisModule } from './modules/redis/redis.module';
 
     RedisModule,
     ProductModule,
+    AuthModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
