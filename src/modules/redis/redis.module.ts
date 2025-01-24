@@ -9,16 +9,24 @@ const RedisProvider = {
   provide: 'REDIS_CLIENT',
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => {
-    const { host, port, password } = configService.get('redis');
+    const { url } = configService.get('redis');
 
-    const client = new Redis({
-      host,
-      port: Number(port),
-      password,
+    const client = new Redis(url, {
+      retryStrategy: (times) => {
+        const delay = Math.min(times * 50, 2000);
+        logger.warn(
+          `Redis retry attempt #${times}, reconnecting in ${delay}ms`,
+        );
+        return delay;
+      },
+      reconnectOnError: (err) => {
+        logger.error('Redis reconnecting due to error:', err.message);
+        return true;
+      },
     });
 
     client.on('connect', () => {
-      logger.log(`Redis connected successfully to ${host}:${port}`);
+      logger.log(`Redis connected successfully to ${url}`);
     });
 
     client.on('error', (err) => {

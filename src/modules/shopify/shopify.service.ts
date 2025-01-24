@@ -1,23 +1,37 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import axios, { AxiosInstance } from 'axios';
 
 @Injectable()
 export class ShopifyService {
-  constructor() {}
+  private readonly shopifyBaseUrl: string;
+  private readonly shopifyAccessToken: string;
+  private readonly axiosInstance: AxiosInstance;
 
-  private getShopifyBaseUrl(): string {
-    const { SHOPIFY_API_KEY, SHOPIFY_PASSWORD, SHOPIFY_STORE } = process.env;
-    return `https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE}/admin/api/2021-01`;
+  constructor(private readonly configService: ConfigService) {
+    this.shopifyBaseUrl = `https://${this.configService.get('shopify.store')}/admin/api/2023-01/`;
+    this.shopifyAccessToken = this.configService.get('shopify.accessToken');
+    this.axiosInstance = axios.create({
+      baseURL: this.shopifyBaseUrl,
+      headers: {
+        'X-Shopify-Access-Token': this.shopifyAccessToken,
+      },
+    });
   }
 
   async getProducts(): Promise<any> {
-    const url = this.getShopifyBaseUrl();
-    const response = await fetch(`${url}/products.json`);
-    return response.json();
+    console.log({
+      shopifyBaseUrl: this.shopifyBaseUrl,
+      shopifyAccessToken: this.shopifyAccessToken,
+    });
+
+    const { data } = await this.axiosInstance.get('products.json');
+    console.log(data);
+    return data;
   }
 
   async getProduct(id: string): Promise<any> {
-    const url = this.getShopifyBaseUrl();
-    const response = await fetch(`${url}/products/${id}.json`);
-    return response.json();
+    const { data } = await this.axiosInstance.get(`products/${id}.json`);
+    return data;
   }
 }

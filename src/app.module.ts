@@ -14,16 +14,18 @@ import jwtConfig from './common/config/jwt.config';
 import dbConfig from './common/config/db.config';
 import redisConfig from './common/config/redis.config';
 import { SeedModule } from './modules/seed/seed.module';
+import shopifyConfig from './common/config/shopify.config';
 
 @Module({
   imports: [
     // Config Module
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV
-        ? `.env.${process.env.NODE_ENV || 'development'}`
-        : '.env',
-      load: [appConfig, dbConfig, jwtConfig, redisConfig],
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.env'
+          : `.env.${process.env.NODE_ENV || 'development'}`,
+      load: [appConfig, dbConfig, jwtConfig, redisConfig, shopifyConfig],
       validationSchema: EnvValidationSchema,
       validationOptions: {
         allowUnknown: true,
