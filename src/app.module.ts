@@ -1,20 +1,21 @@
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
-import { AppService } from './app.service';
 import { AppController } from './app.controller';
-import { EnvValidationSchema } from './validations/env.validation';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ProductModule } from './modules/product/product.module';
-import { RedisModule } from './modules/redis/redis.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { AppService } from './app.service';
 import appConfig from './common/config/app.config';
-import jwtConfig from './common/config/jwt.config';
 import dbConfig from './common/config/db.config';
+import jwtConfig from './common/config/jwt.config';
 import redisConfig from './common/config/redis.config';
-import { SeedModule } from './modules/seed/seed.module';
 import shopifyConfig from './common/config/shopify.config';
+import { AuthModule } from './modules/auth/auth.module';
+import { ProductModule } from './modules/product/product.module';
+import { ProductGroupModule } from './modules/product-group/product-group.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { SeedModule } from './modules/seed/seed.module';
+import { EnvValidationSchema } from './validations/env.validation';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import shopifyConfig from './common/config/shopify.config';
     ProductModule,
     AuthModule,
     SeedModule,
+    ProductGroupModule,
   ],
   controllers: [AppController],
   providers: [AppService],

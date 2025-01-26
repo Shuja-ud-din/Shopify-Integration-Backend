@@ -1,21 +1,39 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
+
+import { GetProductsInterceptor } from './interceptors/getProducts.interceptor';
+import { GetTagsInterceptor } from './interceptors/getTags.interceptor';
+import { SyncProductsInterceptor } from './interceptors/syncProducts.interceptor';
 import { ProductService } from './product.service';
-import Redis from 'ioredis';
 
-@Controller('product')
+@Controller('products')
 export class ProductController {
-  constructor(
-    private readonly productService: ProductService,
-    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
-  ) {}
+  constructor(private readonly productService: ProductService) {}
 
-  @Get('test')
-  async test() {
-    return this.productService.test();
+  @UseInterceptors(GetProductsInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Get('')
+  async getProducts() {
+    return this.productService.getProducts();
   }
 
-  @Get('shopify/products')
-  async getShopifyProducts() {
-    return this.productService.getShopifyProducts();
+  @UseInterceptors(GetTagsInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Get('/tags')
+  async getTags() {
+    return this.productService.getTags();
+  }
+
+  @UseInterceptors(SyncProductsInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Post('/sync')
+  async syncProducts() {
+    return this.productService.syncProducts();
   }
 }
