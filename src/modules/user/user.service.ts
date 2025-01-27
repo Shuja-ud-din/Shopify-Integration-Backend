@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { IUserDoc, User } from './entities/user.entity';
 import { IUser } from 'src/common/types/user.types';
-import { BadRequestException } from '@nestjs/common';
+
+import { IUserDoc, User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -16,9 +17,7 @@ export class UserService {
 
   async findByEmail(email: string): Promise<IUserDoc> {
     const user = await this.userModel.findOne({ email });
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
+
     return user;
   }
 
