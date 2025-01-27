@@ -1,99 +1,235 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Shopify Integration Backend 🛍️
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS-based backend service that integrates with Shopify's API to manage products, product groups, and user authentication.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- 🛍️ Shopify Products Integration
+- 👥 User Authentication
+- 🏷️ Product Tags Management
+- 📦 Product Groups
+- 🔄 Redis Caching
+- 🔐 JWT Authentication
+- 🗃️ MongoDB Integration
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites 🚀
 
-## Project setup
+Before running this project, make sure you have the following installed:
 
-```bash
-$ npm install
+- Node.js (v16 or higher)
+- npm (v8 or higher)
+- MongoDB (v4.4 or higher)
+- Redis (v6 or higher)
+
+## Directory Structure 📁
+
+```
+shopify-integration-backend/
+├── 📁 src/
+│   ├── 📁 common/
+│   │   ├── 📁 config/
+│   │   │   ├── app.config.ts
+│   │   │   ├── db.config.ts
+│   │   │   ├── jwt.config.ts
+│   │   │   ├── redis.config.ts
+│   │   │   └── shopify.config.ts
+│   │   ├── 📁 enums/
+│   │   │   └── product.enum.ts
+│   │   ├── 📁 middlewares/
+│   │   │   └── auth.middleware.ts
+│   │   ├── 📁 types/
+│   │   │   ├── product.types.ts
+│   │   │   └── user.types.ts
+│   │   └── 📁 utils/
+│   │       └── token.ts
+│   ├── 📁 modules/
+│   │   ├── 📁 auth/
+│   │   │   ├── 📁 dtos/
+│   │   │   ├── 📁 interceptors/
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.module.ts
+│   │   │   └── auth.service.ts
+│   │   ├── 📁 product/
+│   │   │   ├── 📁 entities/
+│   │   │   ├── 📁 interceptors/
+│   │   │   ├── product.controller.ts
+│   │   │   ├── product.module.ts
+│   │   │   └── product.service.ts
+│   │   ├── 📁 product-group/
+│   │   │   ├── 📁 dtos/
+│   │   │   ├── 📁 entities/
+│   │   │   ├── 📁 interceptors/
+│   │   │   ├── product-group.controller.ts
+│   │   │   ├── product-group.module.ts
+│   │   │   └── product-group.service.ts
+│   │   ├── 📁 redis/
+│   │   │   └── redis.module.ts
+│   │   ├── 📁 seed/
+│   │   │   ├── 📁 data/
+│   │   │   ├── seed.module.ts
+│   │   │   └── seed.service.ts
+│   │   ├── 📁 shopify/
+│   │   │   ├── shopify.module.ts
+│   │   │   └── shopify.service.ts
+│   │   └── 📁 user/
+│   │       ├── 📁 entities/
+│   │       ├── user.module.ts
+│   │       └── user.service.ts
+│   ├── 📁 validations/
+│   │   └── env.validation.ts
+│   ├── app.controller.ts
+│   ├── app.module.ts
+│   ├── app.service.ts
+│   ├── main.ts
+│   └── seed.ts
+├── 📁 test/
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
+├── .env.development
+├── .env.production
+├── .eslintignore
+├── .eslintrc.js
+├── .gitignore
+├── 📁 .husky/
+│   ├── commit-msg
+│   └── pre-commit
+├── .prettierrc
+├── LICENSE
+├── README.md
+├── commitlint.config.js
+├── nest-cli.json
+├── package.json
+├── tsconfig.build.json
+└── tsconfig.json
 ```
 
-## Compile and run the project
+## Environment Setup ⚙️
+
+Create `.env.development` for development and `.env.production` for production with the following variables:
+
+```env
+# App
+PORT=3000
+NODE_ENV=development
+GLOBAL_PREFIX=api
+CORS_ENABLED=true
+
+# MongoDB
+MONGO_URI=mongodb://localhost:27017/shopify-integration
+
+# JWT
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=24h
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# Shopify
+SHOPIFY_ACCESS_TOKEN=your-shopify-access-token
+SHOPIFY_STORE=your-store.myshopify.com
+```
+
+## Installation 🔧
 
 ```bash
-# development
-$ npm run start
+# Install dependencies
+$ npm install
 
-# watch mode
+# Install husky git hooks
+$ npm run prepare
+```
+
+## Running the Application 🚀
+
+### Development
+
+```bash
+# Start in development mode
 $ npm run start:dev
 
-# production mode
+# Start in debug mode
+$ npm run start:debug
+```
+
+### Production
+
+```bash
+# Build the application
+$ npm run build
+
+# Start in production mode
 $ npm run start:prod
 ```
 
-## Run tests
+## Database Management 🗃️
 
 ```bash
-# unit tests
+# Seed the database
+$ npm run seed
+```
+
+## Testing 🧪
+
+```bash
+# Unit tests
 $ npm run test
 
 # e2e tests
 $ npm run test:e2e
 
-# test coverage
+# Test coverage
 $ npm run test:cov
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Code Quality ✨
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+# Format code
+$ npm run format
+
+# Lint code
+$ npm run lint
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## API Endpoints 🛣️
 
-## Resources
+### Authentication 🔐
 
-Check out a few resources that may come in handy when working with NestJS:
+- `POST /api/auth/sign-in` - User authentication
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Products 🛍️
 
-## Support
+- `GET /api/products` - Get all products
+- `GET /api/products/tags` - Get all product tags
+- `POST /api/products/sync` - Sync products with Shopify
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Product Groups 📦
 
-## Stay in touch
+- `GET /api/product-groups` - Get all product groups
+- `POST /api/product-groups` - Create a new product group
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Production Deployment 🚀
 
-## License
+1. Set up production environment variables in `.env.production`
+2. Build the application:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+$ npm run build
+```
+
+3. Start with PM2 (recommended):
+
+```bash
+# Install PM2 globally
+$ npm install -g pm2
+
+# Start the application
+$ pm2 start dist/main.js --name shopify-integration
+
+# Monitor the application
+$ pm2 monit
+```
+
+## License 📝
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
