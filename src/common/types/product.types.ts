@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongoose';
+import { IProductDoc } from 'src/modules/product/entities/product.entity';
 
 import { ShopifyProductStatus } from '../enums/product.enum';
 
@@ -13,6 +14,7 @@ interface IShopifyVariant {
   updated_at: string;
   taxable: boolean;
   inventory_quantity: number;
+  image_id: number;
 }
 
 interface IShopifyOption {
@@ -65,7 +67,6 @@ export interface IProduct {
   tags: string[];
   status: ShopifyProductStatus;
   image: string;
-  images: string[];
   sku: string;
   price: number;
   inventoryQuantity: number;
@@ -81,11 +82,10 @@ export interface ITag {
 }
 
 export interface IProductGroup {
-  id: string;
   name: string;
   description: string;
   tags: string[];
-  products: IProduct[] | ObjectId[];
+  products: IProductDoc[] | ObjectId[];
 
   createdAt: Date;
   updatedAt: Date;

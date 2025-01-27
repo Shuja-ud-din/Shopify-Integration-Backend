@@ -23,14 +23,23 @@ export class ShopifyService {
     });
   }
 
+  async getProductsCount(): Promise<number> {
+    const { data } = await this.axiosInstance.get(
+      `${this.shopifyBaseUrl}/products/count.json`,
+    );
+
+    return data.count;
+  }
+
   async getProducts(): Promise<IShopifyProduct[]> {
     let nextPageInfo = null;
+    const count = await this.getProductsCount();
     const limit = 250;
-
+    const pages = Math.ceil(count / limit);
     const products: IShopifyProduct[] = [];
 
     try {
-      do {
+      for (let i = 1; i <= pages; i++) {
         const url = new URL(`${this.shopifyBaseUrl}/products.json`);
         url.searchParams.append('limit', limit.toString());
         if (nextPageInfo) {
@@ -40,15 +49,13 @@ export class ShopifyService {
         const { data, headers } =
           await this.axiosInstance.get<IGetProductsResponse>(url.toString());
 
-        // Append fetched products to the list
         products.push(...data.products);
 
-        // Parse `page_info` from response headers (if available)
         const linkHeader = headers['link'];
         if (linkHeader) {
           const nextLink = linkHeader
             .split(',')
-            .find((link) => link.includes('rel="next"'));
+            .find((link: string) => link.includes('rel="next"'));
           if (nextLink) {
             nextPageInfo = new URLSearchParams(
               nextLink.match(/<([^>]+)>/)[1],
@@ -59,7 +66,7 @@ export class ShopifyService {
         } else {
           nextPageInfo = null;
         }
-      } while (nextPageInfo);
+      }
 
       return products;
     } catch (error) {

@@ -7,7 +7,7 @@ export type IProductDoc = Product & Document;
 
 @Schema()
 export class Product implements IProduct {
-  @Prop({ required: true, unique: true })
+  @Prop()
   shopifyProductId: number;
 
   @Prop({ required: true })
@@ -30,9 +30,6 @@ export class Product implements IProduct {
 
   @Prop({ default: '' })
   image: string;
-
-  @Prop({ default: [] })
-  images: string[];
 
   @Prop({ required: true, unique: true })
   sku: string;

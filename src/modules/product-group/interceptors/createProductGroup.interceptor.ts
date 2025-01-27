@@ -8,18 +8,17 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable()
-export class SignInInterceptor implements NestInterceptor {
+export class CreateProductGroupInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
     const response = ctx.getResponse();
     const statusCode = response.statusCode;
 
     return next.handle().pipe(
-      map((data) => {
+      map(() => {
         return {
           statusCode,
-          message: 'Sign In successful',
-          token: data,
+          message: 'Product group created successfully',
           success: true,
         };
       }),
