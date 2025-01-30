@@ -15,4 +15,9 @@ export class AppController {
   healthCheck() {
     return 'Server is UP and RUNNING... 🚀';
   }
+
+  @Get('seed')
+  seed() {
+    return this.appService.seedData();
+  }
 }
