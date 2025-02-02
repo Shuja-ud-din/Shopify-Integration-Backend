@@ -31,7 +31,7 @@ export class ProductController {
 
   @UseInterceptors(GetProductInterceptor)
   @HttpCode(HttpStatus.OK)
-  @Get('/:id')
+  @Get('/details/:id')
   async getProductById(@Param() params: GetProductDto) {
     return this.productService.getProductById(params.id);
   }
