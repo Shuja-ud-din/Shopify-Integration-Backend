@@ -10,18 +10,18 @@ import { map } from 'rxjs/operators';
 import { IProductGroupDoc } from '../entities/product-group.entity';
 
 @Injectable()
-export class GetProductGroupsInterceptor implements NestInterceptor {
+export class GetProductGroupInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
     const response = ctx.getResponse();
     const statusCode = response.statusCode;
 
     return next.handle().pipe(
-      map((data: IProductGroupDoc[]) => {
+      map((productGroup: IProductGroupDoc) => {
         return {
           statusCode,
-          message: 'Product groups fetched successfully',
-          productGroups: data.map((productGroup) => ({
+          message: 'Product group fetched successfully',
+          productGroup: {
             id: productGroup._id,
             name: productGroup.name,
             description: productGroup.description,
@@ -30,10 +30,10 @@ export class GetProductGroupsInterceptor implements NestInterceptor {
               id: product._id,
               title: product.title,
               description: product.description,
+              sku: product.sku,
               price: product.price,
               inventoryQuantity: product.inventoryQuantity,
               scrapperUrls: product.scrapperUrls,
-              sku: product.sku,
               tags: product.tags,
               image: product.image,
               createdAt: product.createdAt,
@@ -41,7 +41,7 @@ export class GetProductGroupsInterceptor implements NestInterceptor {
             })),
             createdAt: productGroup.createdAt,
             updatedAt: productGroup.updatedAt,
-          })),
+          },
           success: true,
         };
       }),
