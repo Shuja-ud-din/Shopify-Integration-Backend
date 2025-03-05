@@ -8,8 +8,22 @@ export const handler = async (event, context) => {
   let browser = null;
 
   try {
-    const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+    // Parse the event body to get URLs
+    const requestBody = JSON.parse(event.body || '{}');
+    const urls = requestBody.urls;
 
+    if (!Array.isArray(urls) || urls.length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error:
+            "Missing or invalid 'urls' parameter. Must be a non-empty array.",
+        }),
+      };
+    }
+
+    // Determine environment (Lambda or local)
+    const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
     const browserOptions = isLambda
       ? {
           executablePath: await chromium.executablePath(),
@@ -29,10 +43,11 @@ export const handler = async (event, context) => {
           headless: true,
         };
 
+    // Launch browser once
     browser = await puppeteerExtra.launch(browserOptions);
     const page = await browser.newPage();
 
-    // Set headers and user-agent to avoid bot detection
+    // Set User-Agent and headers
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
     );
@@ -44,6 +59,7 @@ export const handler = async (event, context) => {
       'Sec-Fetch-User': '?1',
     });
 
+    // Block unnecessary resources
     await page.setRequestInterception(true);
     page.on('request', (req) => {
       if (
@@ -55,31 +71,45 @@ export const handler = async (event, context) => {
       }
     });
 
-    const url =
-      'https://www.costco.com.au/Electronics/Audio-Video/AirPods/AirPods-4-With-Active-Noise-Cancellation/p/202170';
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    // Function to scrape data from a page
+    const scrapeData = async (url) => {
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    // Wait for .notranslate ng-star-inserted to be available
-    await page.waitForSelector('.notranslate.ng-star-inserted');
+        // Wait for key element to be available
+        await page.waitForSelector('.notranslate.ng-star-inserted', {
+          timeout: 5000,
+        });
 
-    // Extract data from adobeProductData
-    const product = await page.evaluate(() => {
-      const name = document.querySelector('.product-name').innerText;
-      const product = document.querySelector(
-        '.notranslate.ng-star-inserted',
-      ).innerText;
+        // Extract data
+        const product = await page.evaluate(() => {
+          const title =
+            document.querySelector('.product-name')?.innerText || 'N/A';
+          const price =
+            document.querySelector('.notranslate.ng-star-inserted')
+              ?.innerText || 'N/A';
+          return { title, price };
+        });
 
-      return {
-        name,
-        product,
-      };
-    });
+        return { url, ...product };
+      } catch (error) {
+        return { url, success: false, error: error.message };
+      }
+    };
 
+    // Process all URLs
+    const results = [];
+    for (const url of urls) {
+      const result = await scrapeData(url);
+      results.push(result);
+    }
+
+    // Close browser
     await browser.close();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ product }),
+      body: JSON.stringify(results),
     };
   } catch (error) {
     console.error(error);

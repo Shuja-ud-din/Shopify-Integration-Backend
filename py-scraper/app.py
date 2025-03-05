@@ -3,6 +3,7 @@ import requests
 import logging
 import random
 import time
+import json
 from bs4 import BeautifulSoup
 
 def fetch_url_with_retry(url, retries=5):
@@ -46,17 +47,43 @@ def parse_ebay_data(html):
     return extracted_data
 
 def lambda_handler(event, context):
-    query_params = event.get("queryStringParameters", {})
-    url = query_params.get("url")
-    if not url:
-        return {"statusCode": 400, "body": "Missing 'url' parameter"}
-    
-    html = fetch_url_with_retry(url)
-    if not html:
-        return {"statusCode": 500, "body": "Failed to retrieve data from eBay."}
-    
-    data = parse_ebay_data(html)
-    return {"statusCode": 200, "body": data}
+    try:
+        # Ensure it's a POST request
+        http_method = event.get("requestContext", {}).get("http", {}).get("method", "")
+        if http_method != "POST":
+            return {
+                "statusCode": 405,
+                "body": json.dumps({"error": "Method Not Allowed. Use POST."})
+            }
+
+
+        # Parse the body as JSON
+        body = json.loads(event.get("body", "{}"))
+        urls = body.get("urls", [])
+
+        # Validate input
+        if not urls or not isinstance(urls, list):
+            return {"statusCode": 400, "body": json.dumps({"error": "Missing or invalid 'urls' parameter. Must be a list."})}
+        
+        results = []
+        for url in urls:
+            html = fetch_url_with_retry(url)
+            if not html:
+                return {"statusCode": 500, "body": json.dumps({"error": f"Failed to retrieve data from eBay for URL: {url}"})}
+            
+            data = parse_ebay_data(html)
+            results.append(data)
+        
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(results)
+        }
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
 
 # AWS Lambda handler
 handler = Mangum(lambda_handler)
