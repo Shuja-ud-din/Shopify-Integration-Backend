@@ -6,8 +6,9 @@ import {
   Post,
   UseInterceptors,
 } from '@nestjs/common';
-import { SignInDto } from './dtos/signIn.dto';
+
 import { AuthService } from './auth.service';
+import { SignInDto } from './dtos/signIn.dto';
 import { SignInInterceptor } from './interceptors/signIn.interceptor';
 
 @Controller('auth')

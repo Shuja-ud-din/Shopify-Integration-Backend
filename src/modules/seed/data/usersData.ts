@@ -1,5 +1,5 @@
-import { IUser } from 'src/common/types/user.types';
 import * as bcrypt from 'bcryptjs';
+import { IUser } from 'src/common/types/user.types';
 
 export const usersData: IUser[] = [
   {

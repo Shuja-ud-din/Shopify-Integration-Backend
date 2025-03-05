@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+
 import { UserService } from '../user/user.service';
 import { usersData } from './data/usersData';
 

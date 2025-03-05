@@ -37,7 +37,8 @@ export class ProductGroupService {
 
       return productGroup;
     } catch (err) {
-      throw new BadRequestException('Product Group not found');
+      console.error(err);
+      throw new BadRequestException('Product Group not found', err);
     }
   }
 
