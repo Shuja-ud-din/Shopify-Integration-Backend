@@ -13,6 +13,15 @@ const RedisProvider = {
 
     const client = new Redis(url, {
       retryStrategy: (times) => {
+        if (times >= 3) {
+          logger.error(
+            'Max retry attempts reached. Make sure your Redis is running.',
+          );
+          throw new Error(
+            'Max retry attempts reached. Make sure your Redis is running.',
+          );
+        }
+
         const delay = Math.min(times * 50, 2000);
         logger.warn(
           `Redis retry attempt #${times}, reconnecting in ${delay}ms`,

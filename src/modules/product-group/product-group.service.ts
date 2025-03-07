@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
+import { IProduct } from 'src/common/types/product.types';
 
 import { ProductService } from '../product/product.service';
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
@@ -12,6 +13,7 @@ import {
   IProductGroupDoc,
   ProductGroup,
 } from './entities/product-group.entity';
+import { ScraperService } from './scraper/scraper.service';
 
 @Injectable()
 export class ProductGroupService {
@@ -19,6 +21,7 @@ export class ProductGroupService {
     @InjectModel(ProductGroup.name)
     private productGroupModel: Model<IProductGroupDoc>,
     private productService: ProductService,
+    private scraperService: ScraperService,
   ) {}
 
   async getProductGroups(): Promise<IProductGroupDoc[]> {
@@ -34,6 +37,25 @@ export class ProductGroupService {
       if (!productGroup) {
         throw new NotFoundException('Product Group not found');
       }
+
+      return productGroup;
+    } catch (err) {
+      console.error(err);
+      throw new BadRequestException('Product Group not found', err);
+    }
+  }
+
+  async scrapeProductGroup(id: string) {
+    try {
+      const productGroup = await this.productGroupModel
+        .findById(id)
+        .populate('products');
+
+      if (!productGroup) {
+        throw new NotFoundException('Product Group not found');
+      }
+
+      this.scraperService.scrapeProducts(productGroup.products as IProduct[]);
 
       return productGroup;
     } catch (err) {

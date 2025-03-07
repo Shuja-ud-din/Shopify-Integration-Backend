@@ -86,6 +86,7 @@ export interface IProductGroup {
   description: string;
   tags: string[];
   products: IProductDoc[] | ObjectId[];
+  isScraping: boolean;
 
   createdAt: Date;
   updatedAt: Date;

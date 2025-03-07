@@ -9,6 +9,7 @@ import {
 } from './entities/product-group.entity';
 import { ProductGroupController } from './product-group.controller';
 import { ProductGroupService } from './product-group.service';
+import { ScraperModule } from './scraper/scraper.module';
 
 @Module({
   providers: [ProductGroupService],
@@ -18,6 +19,7 @@ import { ProductGroupService } from './product-group.service';
       { name: ProductGroup.name, schema: ProductGroupSchema },
     ]),
     ProductModule,
+    ScraperModule,
   ],
   exports: [ProductGroupService],
 })

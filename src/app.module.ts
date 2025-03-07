@@ -9,6 +9,7 @@ import appConfig from './common/config/app.config';
 import dbConfig from './common/config/db.config';
 import jwtConfig from './common/config/jwt.config';
 import redisConfig from './common/config/redis.config';
+import scraperConfig from './common/config/scraper.config';
 import shopifyConfig from './common/config/shopify.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProductModule } from './modules/product/product.module';
@@ -26,7 +27,14 @@ import { EnvValidationSchema } from './validations/env.validation';
         process.env.NODE_ENV === 'production'
           ? '.env'
           : `.env.${process.env.NODE_ENV || 'development'}`,
-      load: [appConfig, dbConfig, jwtConfig, redisConfig, shopifyConfig],
+      load: [
+        appConfig,
+        dbConfig,
+        jwtConfig,
+        redisConfig,
+        shopifyConfig,
+        scraperConfig,
+      ],
       validationSchema: EnvValidationSchema,
       validationOptions: {
         allowUnknown: true,

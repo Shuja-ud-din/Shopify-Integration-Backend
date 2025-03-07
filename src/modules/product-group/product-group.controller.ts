@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   UseInterceptors,
@@ -35,6 +36,12 @@ export class ProductGroupController {
   @Get('/:id')
   async getProductGroup(@Param('id') id: string) {
     return this.productGroupService.getProductGroup(id);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Patch('/scrape/:id')
+  async scrapeProductGroup(@Param('id') id: string) {
+    return this.productGroupService.scrapeProductGroup(id);
   }
 
   @UseInterceptors(CreateProductGroupInterceptor)

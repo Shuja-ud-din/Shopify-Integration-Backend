@@ -26,6 +26,9 @@ export class ProductGroup implements IProductGroup {
 
   @Prop({ default: new Date() })
   updatedAt: Date;
+
+  @Prop({ default: false })
+  isScraping: boolean;
 }
 
 export const ProductGroupSchema = SchemaFactory.createForClass(ProductGroup);

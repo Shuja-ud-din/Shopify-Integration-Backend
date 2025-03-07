@@ -44,6 +44,7 @@ export class ProductService {
     }
 
     product.scrapperUrls = urls;
+    product.updatedAt = new Date();
 
     await product.save();
 
