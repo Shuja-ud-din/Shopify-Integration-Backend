@@ -10,14 +10,14 @@ export const handler = async (event, context) => {
   try {
     // Parse the event body to get URLs
     const requestBody = JSON.parse(event.body || '{}');
-    const urls = requestBody.urls;
+    const products = requestBody.products;
 
-    if (!Array.isArray(urls) || urls.length === 0) {
+    if (!Array.isArray(products) || products.length === 0) {
       return {
         statusCode: 400,
         body: JSON.stringify({
           error:
-            "Missing or invalid 'urls' parameter. Must be a non-empty array.",
+            "Missing or invalid 'products' parameter. Must be a non-empty array.",
         }),
       };
     }
@@ -88,7 +88,27 @@ export const handler = async (event, context) => {
           const price =
             document.querySelector('.notranslate.ng-star-inserted')
               ?.innerText || 'N/A';
-          return { title, price };
+
+          const imageUrl =
+            document
+              .querySelector('div.primary-image-wrapper picture img')
+              ?.getAttribute('src') || null;
+
+          const buyNowButton =
+            document.querySelector('button.btn-secondary.buynow-button') !==
+            null;
+          const addToCartButton =
+            document.querySelector('button#add-to-cart-button') !== null;
+
+          const available = buyNowButton && addToCartButton;
+
+          return {
+            title,
+            stockQty: 1,
+            price: price ? parseFloat(price.match(/\d+\.\d+/)[0]) : null,
+            available,
+            imageUrl: `https://www.costco.com.au${imageUrl}`,
+          };
         });
 
         return { url, ...product };
@@ -99,9 +119,15 @@ export const handler = async (event, context) => {
 
     // Process all URLs
     const results = [];
-    for (const url of urls) {
-      const result = await scrapeData(url);
-      results.push(result);
+    for (const product of products) {
+      let result = await scrapeData(product.url);
+      result.id = product.id;
+
+      if (result.success === false) {
+        console.error(`Error scraping product ${product.url}: ${result.error}`);
+      } else {
+        results.push(result);
+      }
     }
 
     // Close browser
