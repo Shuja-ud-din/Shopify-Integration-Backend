@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotAcceptableException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IProduct } from 'src/common/types/product.types';
 
 import { ShopifyService } from '../shopify/shopify.service';
+import { UpdateProductDto } from './dtos/getProduct.dto';
 import { Product } from './entities/product.entity';
 import { IProductDoc } from './entities/product.entity';
 import { ITagDoc, Tag } from './entities/tag.entity';
@@ -36,45 +41,67 @@ export class ProductService {
     }
   }
 
-  async updateProductUrls(id: string, urls: string[]): Promise<IProductDoc> {
-    const product = await this.productModel.findById(id);
+  private containesDuplicateUrls(urls: string[]): boolean {
+    const uniqueUrls = new Set(urls);
 
-    if (!product) {
+    return urls.length !== uniqueUrls.size;
+  }
+
+  async updateProduct(
+    id: string,
+    payload: UpdateProductDto,
+  ): Promise<IProductDoc> {
+    const existingProduct = await this.getProductById(id);
+
+    if (!existingProduct) {
       throw new NotFoundException('Product not found');
     }
 
-    product.scrapperUrls = urls;
-    product.updatedAt = new Date();
+    const { urls, profitMargin } = payload;
 
-    await product.save();
+    if (urls && this.containesDuplicateUrls(urls)) {
+      throw new NotAcceptableException('Duplicate urls are not allowed');
+    }
 
-    return product;
+    if (urls) {
+      existingProduct.scrapperUrls = urls;
+    }
+
+    if (profitMargin) {
+      existingProduct.profitMargin = profitMargin;
+    }
+
+    existingProduct.updatedAt = new Date();
+    await existingProduct.save();
+
+    return existingProduct;
   }
 
   async syncProducts() {
     const shopifyProducts = await this.shopifyService.getProducts();
 
-    const products: IProduct[] = [];
+    const products: Partial<IProduct>[] = [];
 
     for (const product of shopifyProducts) {
       const tags = product.tags
         ? product.tags.split(',').map((tag) => tag.trim())
         : [];
       for (const variant of product.variants) {
-        const productData: IProduct = {
-          shopifyProductId: variant.product_id,
+        const productData: Partial<IProduct> = {
+          shopifyProductId: product.id,
+          shopifyVariantId: variant.id,
           title: `${product.title} - ${variant.title}`,
           bodyHtml: product.body_html,
           productType: product.product_type,
           vendor: product.vendor,
           tags,
           status: product.status,
-          image: product.images.find((image) => image.id === variant.image_id)
-            ?.src,
+          image:
+            product.images.find((image) => image.id === variant.image_id)
+              ?.src || product.image?.src,
           sku: variant.sku,
           price: Number(variant.price),
           inventoryQuantity: variant.inventory_quantity,
-          scrapperUrls: [],
           createdAt: new Date(variant.created_at),
           updatedAt: new Date(variant.updated_at),
         };
@@ -99,10 +126,15 @@ export class ProductService {
     });
 
     for (const product of products) {
-      await this.productModel.findOneAndUpdate({ sku: product.sku }, product, {
-        upsert: true,
-        new: true,
-      });
+      console.log('Syncing products', products.length);
+      await this.productModel.findOneAndUpdate(
+        { shopifyVariantId: product.shopifyVariantId },
+        product,
+        {
+          upsert: true,
+          new: true,
+        },
+      );
     }
 
     await this.productModel.deleteMany({

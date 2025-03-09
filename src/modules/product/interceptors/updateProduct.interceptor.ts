@@ -30,6 +30,7 @@ export class UpdateProductInterceptor implements NestInterceptor {
             image: product.image,
             createdAt: product.createdAt,
             updatedAt: product.updatedAt,
+            profitMargin: product.profitMargin,
             inventoryQuantity: product.inventoryQuantity,
             productType: product.productType,
             scrapperUrls: product.scrapperUrls,

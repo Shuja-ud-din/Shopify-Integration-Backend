@@ -4,6 +4,7 @@ import axios, { AxiosInstance } from 'axios';
 import {
   IGetProductsResponse,
   IShopifyProduct,
+  IShopifyProductUpdate,
 } from 'src/common/types/product.types';
 
 @Injectable()
@@ -32,41 +33,35 @@ export class ShopifyService {
   }
 
   async getProducts(): Promise<IShopifyProduct[]> {
-    let nextPageInfo = null;
     const count = await this.getProductsCount();
+
+    console.log('Total products:', count);
+
     const limit = 250;
     const pages = Math.ceil(count / limit);
     const products: IShopifyProduct[] = [];
+    let page_info = '';
 
     try {
       for (let i = 1; i <= pages; i++) {
-        const url = new URL(`${this.shopifyBaseUrl}/products.json`);
-        url.searchParams.append('limit', limit.toString());
-        if (nextPageInfo) {
-          url.searchParams.append('page_info', nextPageInfo);
-        }
+        const url = `${this.shopifyBaseUrl}/products.json`;
 
         const { data, headers } =
-          await this.axiosInstance.get<IGetProductsResponse>(url.toString());
+          await this.axiosInstance.get<IGetProductsResponse>(url, {
+            params: {
+              limit,
+              page_info,
+            },
+          });
+
+        if (headers.link) {
+          page_info = headers.link?.match(/page_info=([^&>]+)/)?.[1];
+        }
 
         products.push(...data.products);
-
-        const linkHeader = headers['link'];
-        if (linkHeader) {
-          const nextLink = linkHeader
-            .split(',')
-            .find((link: string) => link.includes('rel="next"'));
-          if (nextLink) {
-            nextPageInfo = new URLSearchParams(
-              nextLink.match(/<([^>]+)>/)[1],
-            ).get('page_info');
-          } else {
-            nextPageInfo = null;
-          }
-        } else {
-          nextPageInfo = null;
-        }
       }
+
+      console.log('Fetched products:', products.length);
 
       return products;
     } catch (error) {
@@ -82,5 +77,44 @@ export class ShopifyService {
     const { data } = await this.axiosInstance.get(`products/${id}.json`);
 
     return data;
+  }
+
+  async updateInventory(
+    inventoryItemId: number,
+    available: number,
+    locationId: number,
+  ): Promise<void> {
+    try {
+      await this.axiosInstance.post(`/inventory_levels/set.json`, {
+        location_id: locationId,
+        inventory_item_id: inventoryItemId,
+        available: available,
+      });
+      console.log('Inventory updated successfully');
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+    }
+  }
+
+  async updateProduct(
+    payload: IShopifyProductUpdate,
+  ): Promise<IShopifyProduct> {
+    const { productId, variantId, ...rest } = payload;
+    try {
+      const { data } = await this.axiosInstance.put(
+        `variants/${variantId}.json`,
+        {
+          variant: rest,
+        },
+      );
+
+      return data;
+    } catch (error) {
+      console.error(error);
+      // throw new HttpException(
+      //   'Failed to update product on Shopify',
+      //   HttpStatus.BAD_REQUEST,
+      // );
+    }
   }
 }

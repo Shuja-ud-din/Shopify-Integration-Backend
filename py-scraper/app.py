@@ -29,30 +29,34 @@ def parse_ebay_data(html):
     soup = BeautifulSoup(html, "html.parser")
     extracted_data = {}
 
-    extracted_data['title'] = soup.select_one('.x-item-title__mainTitle')
-    extracted_data['title'] = extracted_data['title'].text.strip() if extracted_data['title'] else None
+    # Extract title
+    title_element = soup.select_one('.x-item-title__mainTitle')
+    extracted_data['title'] = title_element.text.strip() if title_element else None
 
+    # Extract stock quantity
     stock_qty_element = soup.find(id='qtyAvailability')
     if stock_qty_element:
-        stock_text = stock_qty_element.find('span', class_='ux-textspans ux-textspans--SECONDARY').text
-        
+        stock_text_element = stock_qty_element.find('span', class_='ux-textspans ux-textspans--SECONDARY')
+        stock_text = stock_text_element.text if stock_text_element else ""
         match = re.search(r'(\d+)', stock_text)
         extracted_data['stockQty'] = int(match.group()) if match else 1
     else:
         extracted_data['stockQty'] = 0
 
-    price_text = soup.select_one('.x-price-primary')
-    price_text = price_text.text.strip() if price_text else None
+    # Extract price
+    price_element = soup.select_one('.x-price-primary')
+    price_text = price_element.text.strip() if price_element else None
     price_match = re.search(r'\d+\.\d+', price_text) if price_text else None
-    price = float(price_match.group()) if price_match else None
-    extracted_data['price'] = price
+    extracted_data['price'] = float(price_match.group()) if price_match else None
 
+    # Check availability
     buy_now_btn = soup.select_one('#binBtn_btn_1')
-    extracted_data['available'] = True if buy_now_btn else False
+    extracted_data['available'] = bool(buy_now_btn)
 
+    # Extract image
     images = soup.find_all("div", {"class": "ux-image-carousel-item"})
-    first_image = images[0].find("img") if images else None
-    extracted_data['imageUrl'] = first_image['src'] if first_image else None
+    first_image_element = images[0].find("img") if images else None
+    extracted_data['imageUrl'] = first_image_element['src'] if first_image_element and 'src' in first_image_element.attrs else None
 
     return extracted_data
 

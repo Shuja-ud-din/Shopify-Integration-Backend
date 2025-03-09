@@ -5,12 +5,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  Patch,
   Post,
+  Put,
   UseInterceptors,
 } from '@nestjs/common';
 
-import { GetProductDto, UpdateProductUrlsDto } from './dtos/getProduct.dto';
+import { GetProductDto, UpdateProductDto } from './dtos/getProduct.dto';
 import { GetProductInterceptor } from './interceptors/getProduct.interceptor';
 import { GetProductsInterceptor } from './interceptors/getProducts.interceptor';
 import { GetTagsInterceptor } from './interceptors/getTags.interceptor';
@@ -38,12 +38,12 @@ export class ProductController {
 
   @UseInterceptors(UpdateProductInterceptor)
   @HttpCode(HttpStatus.OK)
-  @Patch('/:id')
-  async updateProductUrls(
+  @Put('/:id')
+  async updateProduct(
     @Param() params: GetProductDto,
-    @Body() body: UpdateProductUrlsDto,
+    @Body() body: UpdateProductDto,
   ) {
-    return this.productService.updateProductUrls(params.id, body.urls);
+    return this.productService.updateProduct(params.id, body);
   }
 
   @UseInterceptors(GetTagsInterceptor)

@@ -5,9 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
-import { IProduct } from 'src/common/types/product.types';
+import { IScapedProduct } from 'src/common/types/product.types';
 
+import { IProductDoc } from '../product/entities/product.entity';
 import { ProductService } from '../product/product.service';
+import { ShopifyService } from '../shopify/shopify.service';
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
 import {
   IProductGroupDoc,
@@ -22,7 +24,32 @@ export class ProductGroupService {
     private productGroupModel: Model<IProductGroupDoc>,
     private productService: ProductService,
     private scraperService: ScraperService,
+    private shopifyService: ShopifyService,
   ) {}
+
+  private async updateProductsData(products: IScapedProduct[]) {
+    for (const product of products) {
+      const productFound = await this.productService.getProductById(product.id);
+      if (productFound) {
+        productFound.price = product.price;
+        productFound.inventoryQuantity = product.stockQty;
+        productFound.image = product.imageUrl;
+        productFound.updatedAt = new Date();
+        await productFound.save();
+
+        await this.shopifyService.updateProduct({
+          productId: productFound.shopifyVariantId,
+          variantId: productFound.shopifyVariantId,
+          price: product.price,
+          inventory_quantity: product.stockQty,
+        });
+      } else {
+        console.warn(
+          `Product with ID ${product.id} not found in local database.`,
+        );
+      }
+    }
+  }
 
   async getProductGroups(): Promise<IProductGroupDoc[]> {
     return this.productGroupModel.find().populate('products');
@@ -55,7 +82,16 @@ export class ProductGroupService {
         throw new NotFoundException('Product Group not found');
       }
 
-      this.scraperService.scrapeProducts(productGroup.products as IProduct[]);
+      productGroup.isScraping = true;
+      await productGroup.save();
+
+      this.scraperService
+        .scrapeProducts(productGroup.products as IProductDoc[])
+        .then(async (products) => {
+          await this.updateProductsData(products);
+          productGroup.isScraping = false;
+          await productGroup.save();
+        });
 
       return productGroup;
     } catch (err) {

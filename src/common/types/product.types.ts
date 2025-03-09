@@ -60,6 +60,7 @@ export interface IShopifyProduct {
 
 export interface IProduct {
   shopifyProductId: number;
+  shopifyVariantId: number;
   title: string;
   bodyHtml: string;
   vendor: string;
@@ -70,7 +71,7 @@ export interface IProduct {
   sku: string;
   price: number;
   inventoryQuantity: number;
-
+  profitMargin?: number;
   scrapperUrls: string[];
 
   createdAt: Date;
@@ -94,4 +95,27 @@ export interface IProductGroup {
 
 export interface IGetProductsResponse {
   products: IShopifyProduct[];
+}
+
+export interface IScrapperPayloadProduct {
+  url: string;
+  id: string;
+}
+
+export interface IScapedProduct {
+  id: string;
+  url: string;
+  title: string;
+  price: number;
+  stockQty: number;
+  available: boolean;
+  imageUrl: string;
+}
+
+export interface IShopifyProductUpdate {
+  productId: number;
+  variantId: number;
+
+  price?: number;
+  inventory_quantity?: number;
 }

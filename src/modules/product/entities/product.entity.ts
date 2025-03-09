@@ -10,6 +10,9 @@ export class Product implements IProduct {
   @Prop()
   shopifyProductId: number;
 
+  @Prop()
+  shopifyVariantId: number;
+
   @Prop({ required: true })
   title: string;
 
@@ -31,7 +34,7 @@ export class Product implements IProduct {
   @Prop({ default: '' })
   image: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   sku: string;
 
   @Prop({ required: true })
@@ -39,6 +42,9 @@ export class Product implements IProduct {
 
   @Prop({ required: true, default: 0 })
   inventoryQuantity: number;
+
+  @Prop({ default: 1 })
+  profitMargin: number;
 
   @Prop({ default: [] })
   scrapperUrls: string[];

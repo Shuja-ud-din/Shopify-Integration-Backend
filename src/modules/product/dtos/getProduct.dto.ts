@@ -1,8 +1,10 @@
 import {
   IsArray,
-  IsNotEmpty,
+  IsNumber,
+  IsOptional,
   IsString,
   IsUrl,
+  Min,
   MinLength,
 } from 'class-validator';
 
@@ -12,10 +14,15 @@ export class GetProductDto {
   id: string;
 }
 
-export class UpdateProductUrlsDto {
+export class UpdateProductDto {
+  @IsOptional()
   @IsArray()
-  @IsNotEmpty()
   @IsString({ each: true })
   @IsUrl({}, { each: true })
-  urls: string[];
+  urls?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  profitMargin?: number;
 }
