@@ -17,6 +17,7 @@ import { CreateProductGroupInterceptor } from './interceptors/createProductGroup
 import { DeleteProductGroupInterceptor } from './interceptors/deleteProductGroup.interceptor';
 import { GetProductGroupInterceptor } from './interceptors/getProductGroup.interceptor';
 import { GetProductGroupsInterceptor } from './interceptors/getProductGroups.interceptor';
+import { ScrapeProductGroupInterceptor } from './interceptors/scrapeProductGroup.interceptor';
 import { UpdateProductGroupInterceptor } from './interceptors/updateProductGroup.interceptor';
 import { ProductGroupService } from './product-group.service';
 
@@ -38,6 +39,7 @@ export class ProductGroupController {
     return this.productGroupService.getProductGroup(id);
   }
 
+  @UseInterceptors(ScrapeProductGroupInterceptor)
   @HttpCode(HttpStatus.OK)
   @Patch('/scrape/:id')
   async scrapeProductGroup(@Param('id') id: string) {
