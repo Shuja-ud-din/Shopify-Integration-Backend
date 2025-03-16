@@ -94,6 +94,10 @@ export class ScraperService {
   }
 
   private filterBestResults(results: IScapedProduct[]): IScapedProduct[] {
+    if (results.length === 0) {
+      return [];
+    }
+
     const resultIds = new Set<string>(results.map((result) => result.id));
     let bestResults: IScapedProduct[] = [];
 

@@ -36,6 +36,8 @@ export class GetProductInterceptor implements NestInterceptor {
             productType: product.productType,
             scrapperUrls: product.scrapperUrls,
             shopifyProductId: product.shopifyProductId,
+            shopifyUpdateBlocked: product.shopifyUpdateBlocked,
+            hasChanges: product.hasChanges,
             status: product.status,
             vendor: product.vendor,
           },
