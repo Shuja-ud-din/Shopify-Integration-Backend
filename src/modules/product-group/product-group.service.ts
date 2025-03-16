@@ -9,13 +9,12 @@ import { IScapedProduct } from 'src/common/types/product.types';
 
 import { IProductDoc } from '../product/entities/product.entity';
 import { ProductService } from '../product/product.service';
-import { ShopifyService } from '../shopify/shopify.service';
+import { ScraperService } from '../scraper/scraper.service';
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
 import {
   IProductGroupDoc,
   ProductGroup,
 } from './entities/product-group.entity';
-import { ScraperService } from './scraper/scraper.service';
 
 @Injectable()
 export class ProductGroupService {
@@ -24,30 +23,19 @@ export class ProductGroupService {
     private productGroupModel: Model<IProductGroupDoc>,
     private productService: ProductService,
     private scraperService: ScraperService,
-    private shopifyService: ShopifyService,
   ) {}
 
   private async updateProductsData(products: IScapedProduct[]) {
     for (const product of products) {
-      const productFound = await this.productService.getProductById(product.id);
-      if (productFound) {
-        productFound.price = product.price;
-        productFound.inventoryQuantity = product.stockQty;
-        productFound.image = product.imageUrl;
-        productFound.updatedAt = new Date();
-        await productFound.save();
+      const updatedProduct =
+        await this.productService.updateScrappedProduct(product);
 
-        await this.shopifyService.updateProduct({
-          productId: productFound.shopifyVariantId,
-          variantId: productFound.shopifyVariantId,
-          price: product.price,
-          inventory_quantity: product.stockQty,
-        });
-      } else {
-        console.warn(
-          `Product with ID ${product.id} not found in local database.`,
-        );
-      }
+      await this.productService.updateProductToShopify(product.id, {
+        productId: updatedProduct.shopifyVariantId,
+        variantId: updatedProduct.shopifyVariantId,
+        price: product.price,
+        inventory_quantity: product.stockQty,
+      });
     }
   }
 

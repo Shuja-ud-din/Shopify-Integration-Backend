@@ -73,6 +73,7 @@ export interface IProduct {
   inventoryQuantity: number;
   profitMargin?: number;
   scrapperUrls: string[];
+  hasChanges: boolean;
 
   createdAt: Date;
   updatedAt: Date;

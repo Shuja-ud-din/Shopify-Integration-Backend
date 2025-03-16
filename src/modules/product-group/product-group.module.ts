@@ -3,14 +3,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 
 import { ProductModule } from '../product/product.module';
-import { ShopifyModule } from '../shopify/shopify.module';
+import { ScraperModule } from '../scraper/scraper.module';
 import {
   ProductGroup,
   ProductGroupSchema,
 } from './entities/product-group.entity';
 import { ProductGroupController } from './product-group.controller';
 import { ProductGroupService } from './product-group.service';
-import { ScraperModule } from './scraper/scraper.module';
 
 @Module({
   providers: [ProductGroupService],
@@ -21,7 +20,6 @@ import { ScraperModule } from './scraper/scraper.module';
     ]),
     ProductModule,
     ScraperModule,
-    ShopifyModule,
   ],
   exports: [ProductGroupService],
 })

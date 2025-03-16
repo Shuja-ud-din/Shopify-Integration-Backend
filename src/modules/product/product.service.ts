@@ -1,12 +1,18 @@
 import {
+  BadRequestException,
   Injectable,
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { IProduct } from 'src/common/types/product.types';
+import {
+  IProduct,
+  IScapedProduct,
+  IShopifyProductUpdate,
+} from 'src/common/types/product.types';
 
+import { ScraperService } from '../scraper/scraper.service';
 import { ShopifyService } from '../shopify/shopify.service';
 import { UpdateProductDto } from './dtos/getProduct.dto';
 import { Product } from './entities/product.entity';
@@ -17,6 +23,7 @@ import { ITagDoc, Tag } from './entities/tag.entity';
 export class ProductService {
   constructor(
     private readonly shopifyService: ShopifyService,
+    private readonly scraperService: ScraperService,
     @InjectModel(Product.name) private productModel: Model<IProductDoc>,
     @InjectModel(Tag.name) private tagModel: Model<ITagDoc>,
   ) {}
@@ -139,6 +146,77 @@ export class ProductService {
 
     await this.productModel.deleteMany({
       shopifyProductId: { $nin: shopifyProducts.map((product) => product.id) },
+    });
+  }
+
+  async updateScrappedProduct(product: IScapedProduct): Promise<IProductDoc> {
+    const productFound = await this.getProductById(product.id);
+    productFound.price = product.price * productFound.profitMargin * 10;
+    productFound.inventoryQuantity = product.stockQty;
+    // productFound.image = product.imageUrl;
+    productFound.updatedAt = new Date();
+    productFound.hasChanges = true;
+
+    await productFound.save();
+
+    return productFound;
+  }
+
+  async scrapeProduct(id: string) {
+    try {
+      const product = await this.getProductById(id);
+
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+
+      const scrapedProduct = await this.scraperService.scrapeProduct(product);
+
+      await this.updateScrappedProduct(scrapedProduct);
+    } catch (err) {
+      console.log(err);
+      throw new BadRequestException(err.message || 'Product not found');
+    }
+  }
+
+  async updateDBProductToShopify(id: string) {
+    const product = await this.getProductById(id);
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    if (!product.hasChanges) {
+      throw new BadRequestException('No changes to update');
+    }
+
+    await this.shopifyService.updateProduct({
+      productId: product.shopifyProductId,
+      variantId: product.shopifyVariantId,
+      price: product.price,
+      inventory_quantity: product.inventoryQuantity,
+    });
+
+    product.hasChanges = false;
+    product.updatedAt = new Date();
+    await product.save();
+  }
+
+  async updateProductToShopify(id: string, payload: IShopifyProductUpdate) {
+    const product = await this.getProductById(id);
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    product.hasChanges = false;
+    product.updatedAt = new Date();
+    await product.save();
+
+    await this.shopifyService.updateProduct({
+      productId: product.shopifyProductId,
+      variantId: product.shopifyVariantId,
+      ...payload,
     });
   }
 

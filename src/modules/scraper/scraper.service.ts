@@ -110,6 +110,12 @@ export class ScraperService {
     return bestResults;
   }
 
+  async scrapeProduct(product: IProductDoc): Promise<IScapedProduct> {
+    const results = await this.scrapeProducts([product]);
+
+    return results[0];
+  }
+
   async scrapeProducts(products: IProductDoc[]): Promise<IScapedProduct[]> {
     const ebayProducts: IScrapperPayloadProduct[] = [];
     const costcoProducts: IScrapperPayloadProduct[] = [];

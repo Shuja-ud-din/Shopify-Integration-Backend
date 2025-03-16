@@ -49,6 +49,9 @@ export class Product implements IProduct {
   @Prop({ default: [] })
   scrapperUrls: string[];
 
+  @Prop({ default: false })
+  hasChanges: boolean;
+
   @Prop({ required: true, default: Date.now() })
   createdAt: Date;
 

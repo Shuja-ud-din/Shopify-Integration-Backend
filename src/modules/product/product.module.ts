@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 
 import { RedisModule } from '../redis/redis.module';
+import { ScraperModule } from '../scraper/scraper.module';
 import { ShopifyModule } from '../shopify/shopify.module';
 import { ShopifyService } from '../shopify/shopify.service';
 import { ProductSchema } from './entities/product.entity';
@@ -18,6 +19,7 @@ import { ProductService } from './product.service';
   imports: [
     ShopifyModule,
     RedisModule,
+    ScraperModule,
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     MongooseModule.forFeature([{ name: Tag.name, schema: TagSchema }]),
   ],

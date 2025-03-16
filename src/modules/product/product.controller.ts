@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   UseInterceptors,
@@ -14,8 +15,10 @@ import { GetProductDto, UpdateProductDto } from './dtos/getProduct.dto';
 import { GetProductInterceptor } from './interceptors/getProduct.interceptor';
 import { GetProductsInterceptor } from './interceptors/getProducts.interceptor';
 import { GetTagsInterceptor } from './interceptors/getTags.interceptor';
+import { ScrapeProductInterceptor } from './interceptors/scrapeProduct.interceptor';
 import { SyncProductsInterceptor } from './interceptors/syncProducts.interceptor';
 import { UpdateProductInterceptor } from './interceptors/updateProduct.interceptor';
+import { UpdateShopifyProductInterceptor } from './interceptors/updateShopifyProduct.interceptor';
 import { ProductService } from './product.service';
 
 @Controller('products')
@@ -51,6 +54,20 @@ export class ProductController {
   @Get('/tags')
   async getTags() {
     return this.productService.getTags();
+  }
+
+  @UseInterceptors(ScrapeProductInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/scrape/:id')
+  async scrapeProduct(@Param() params: GetProductDto) {
+    return this.productService.scrapeProduct(params.id);
+  }
+
+  @UseInterceptors(UpdateShopifyProductInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Put('/shopify/:id')
+  async updateProductToShopify(@Param() params: GetProductDto) {
+    return this.productService.updateDBProductToShopify(params.id);
   }
 
   @UseInterceptors(SyncProductsInterceptor)
