@@ -27,15 +27,21 @@ export class ProductGroupService {
 
   private async updateProductsData(products: IScapedProduct[]) {
     for (const product of products) {
-      const updatedProduct =
-        await this.productService.updateScrappedProduct(product);
+      try {
+        const updatedProduct =
+          await this.productService.updateScrappedProduct(product);
 
-      await this.productService.updateProductToShopify(product.id, {
-        productId: updatedProduct.shopifyVariantId,
-        variantId: updatedProduct.shopifyVariantId,
-        price: product.price,
-        inventory_quantity: product.stockQty,
-      });
+        if (!updatedProduct.shopifyUpdateBlocked) {
+          await this.productService.updateProductToShopify(product.id, {
+            productId: updatedProduct.shopifyVariantId,
+            variantId: updatedProduct.shopifyVariantId,
+            price: product.price,
+            inventory_quantity: product.stockQty,
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }
   }
 

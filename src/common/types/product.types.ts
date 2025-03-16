@@ -74,6 +74,7 @@ export interface IProduct {
   profitMargin?: number;
   scrapperUrls: string[];
   hasChanges: boolean;
+  shopifyUpdateBlocked: boolean;
 
   createdAt: Date;
   updatedAt: Date;

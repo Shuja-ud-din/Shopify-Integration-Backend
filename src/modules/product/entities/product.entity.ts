@@ -52,6 +52,9 @@ export class Product implements IProduct {
   @Prop({ default: false })
   hasChanges: boolean;
 
+  @Prop({ default: false })
+  shopifyUpdateBlocked: boolean;
+
   @Prop({ required: true, default: Date.now() })
   createdAt: Date;
 

@@ -190,6 +190,10 @@ export class ProductService {
       throw new BadRequestException('No changes to update');
     }
 
+    if (product.shopifyUpdateBlocked) {
+      throw new BadRequestException('Update to Shopify blocked');
+    }
+
     await this.shopifyService.updateProduct({
       productId: product.shopifyProductId,
       variantId: product.shopifyVariantId,
@@ -209,6 +213,10 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
+    if (product.shopifyUpdateBlocked) {
+      throw new BadRequestException('Update to Shopify blocked');
+    }
+
     product.hasChanges = false;
     product.updatedAt = new Date();
     await product.save();
@@ -218,6 +226,28 @@ export class ProductService {
       variantId: product.shopifyVariantId,
       ...payload,
     });
+  }
+
+  async blockProductUpdate(id: string) {
+    const product = await this.getProductById(id);
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    product.shopifyUpdateBlocked = true;
+    await product.save();
+  }
+
+  async unblockProductUpdate(id: string) {
+    const product = await this.getProductById(id);
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    product.shopifyUpdateBlocked = false;
+    await product.save();
   }
 
   // tags

@@ -12,11 +12,13 @@ import {
 } from '@nestjs/common';
 
 import { GetProductDto, UpdateProductDto } from './dtos/getProduct.dto';
+import { BlockProductUpdateInterceptor } from './interceptors/blockProductUpdate.interceptor';
 import { GetProductInterceptor } from './interceptors/getProduct.interceptor';
 import { GetProductsInterceptor } from './interceptors/getProducts.interceptor';
 import { GetTagsInterceptor } from './interceptors/getTags.interceptor';
 import { ScrapeProductInterceptor } from './interceptors/scrapeProduct.interceptor';
 import { SyncProductsInterceptor } from './interceptors/syncProducts.interceptor';
+import { UnblockProductUpdateInterceptor } from './interceptors/unblockProductUpdate.interceptor';
 import { UpdateProductInterceptor } from './interceptors/updateProduct.interceptor';
 import { UpdateShopifyProductInterceptor } from './interceptors/updateShopifyProduct.interceptor';
 import { ProductService } from './product.service';
@@ -61,6 +63,20 @@ export class ProductController {
   @Patch('/scrape/:id')
   async scrapeProduct(@Param() params: GetProductDto) {
     return this.productService.scrapeProduct(params.id);
+  }
+
+  @UseInterceptors(BlockProductUpdateInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/blockUpdate/:id')
+  async blockProductUpdate(@Param() params: GetProductDto) {
+    return this.productService.blockProductUpdate(params.id);
+  }
+
+  @UseInterceptors(UnblockProductUpdateInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/unblockUpdate/:id')
+  async unblockProductUpdate(@Param() params: GetProductDto) {
+    return this.productService.unblockProductUpdate(params.id);
   }
 
   @UseInterceptors(UpdateShopifyProductInterceptor)
