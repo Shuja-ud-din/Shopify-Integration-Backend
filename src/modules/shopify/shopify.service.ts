@@ -76,7 +76,7 @@ export class ShopifyService {
   async getProduct(id: number): Promise<IShopifyProduct> {
     const { data } = await this.axiosInstance.get(`products/${id}.json`);
 
-    return data;
+    return data.product;
   }
 
   async updateInventory(
