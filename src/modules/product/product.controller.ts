@@ -17,6 +17,7 @@ import { GetProductInterceptor } from './interceptors/getProduct.interceptor';
 import { GetProductsInterceptor } from './interceptors/getProducts.interceptor';
 import { GetTagsInterceptor } from './interceptors/getTags.interceptor';
 import { ScrapeProductInterceptor } from './interceptors/scrapeProduct.interceptor';
+import { SyncProductInterceptor } from './interceptors/syncProduct.interceptor';
 import { SyncProductsInterceptor } from './interceptors/syncProducts.interceptor';
 import { UnblockProductUpdateInterceptor } from './interceptors/unblockProductUpdate.interceptor';
 import { UpdateProductInterceptor } from './interceptors/updateProduct.interceptor';
@@ -84,6 +85,13 @@ export class ProductController {
   @Put('/shopify/:id')
   async updateProductToShopify(@Param() params: GetProductDto) {
     return this.productService.updateDBProductToShopify(params.id);
+  }
+
+  @UseInterceptors(SyncProductInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Post('/sync/:id')
+  async syncProduct(@Param() params: GetProductDto) {
+    return this.productService.syncProduct(params.id);
   }
 
   @UseInterceptors(SyncProductsInterceptor)

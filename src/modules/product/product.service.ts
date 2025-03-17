@@ -84,6 +84,49 @@ export class ProductService {
     return existingProduct;
   }
 
+  async syncProduct(id: string) {
+    const product = await this.getProductById(id);
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const shopifyProduct = await this.shopifyService.getProduct(
+      product.shopifyProductId,
+    );
+
+    if (!shopifyProduct) {
+      throw new NotFoundException('Shopify product not found');
+    }
+
+    const variant = shopifyProduct.variants.find(
+      (variant) => variant.id === product.shopifyVariantId,
+    );
+
+    if (!variant) {
+      throw new NotFoundException('Shopify variant not found');
+    }
+
+    product.title = `${shopifyProduct.title} - ${variant.title}`;
+    product.bodyHtml = shopifyProduct.body_html;
+    product.productType = shopifyProduct.product_type;
+    product.vendor = shopifyProduct.vendor;
+    product.tags = shopifyProduct.tags
+      ? shopifyProduct.tags.split(',').map((tag) => tag.trim())
+      : [];
+    product.status = shopifyProduct.status;
+    product.image =
+      shopifyProduct.images.find((image) => image.id === variant.image_id)
+        ?.src || shopifyProduct.image?.src;
+    product.sku = variant.sku;
+    product.price = Number(variant.price);
+    product.inventoryQuantity = variant.inventory_quantity;
+    product.updatedAt = new Date();
+    product.hasChanges = false;
+
+    await product.save();
+  }
+
   async syncProducts() {
     const shopifyProducts = await this.shopifyService.getProducts();
 
