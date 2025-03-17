@@ -213,10 +213,6 @@ export class ProductService {
         throw new NotFoundException('Product not found');
       }
 
-      if (product.shopifyUpdateBlocked) {
-        throw new BadRequestException('Update to Shopify blocked');
-      }
-
       if (product.scrapperUrls.length === 0) {
         throw new BadRequestException('No urls to scrape');
       }
