@@ -194,7 +194,9 @@ export class ProductService {
 
   async updateScrappedProduct(product: IScapedProduct): Promise<IProductDoc> {
     const productFound = await this.getProductById(product.id);
-    productFound.price = product.price * productFound.profitMargin * 10;
+    productFound.price = parseFloat(
+      (product.price * productFound.profitMargin * 10).toFixed(2),
+    );
     productFound.inventoryQuantity = product.stockQty;
     // productFound.image = product.imageUrl;
     productFound.updatedAt = new Date();
