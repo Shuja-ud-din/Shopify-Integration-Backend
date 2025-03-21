@@ -248,6 +248,7 @@ export class ProductService {
       variantId: product.shopifyVariantId,
       price: product.price,
       inventory_quantity: product.inventoryQuantity,
+      locationId: product.locationId,
     });
 
     product.hasChanges = false;

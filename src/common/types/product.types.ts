@@ -75,6 +75,7 @@ export interface IProduct {
   scrapperUrls: string[];
   hasChanges: boolean;
   shopifyUpdateBlocked: boolean;
+  locationId: number;
 
   createdAt: Date;
   updatedAt: Date;
@@ -117,7 +118,14 @@ export interface IScapedProduct {
 export interface IShopifyProductUpdate {
   productId: number;
   variantId: number;
+  locationId: number;
 
-  price?: number;
+  price: number;
   inventory_quantity?: number;
+}
+
+export interface IShopifyInventoryUpdate {
+  variantId: number;
+  available: number;
+  locationId: number;
 }
