@@ -5,7 +5,7 @@ import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { RedisModule } from '../redis/redis.module';
 import { ScraperModule } from '../scraper/scraper.module';
 import { ShopifyModule } from '../shopify/shopify.module';
-import { ShopifyService } from '../shopify/shopify.service';
+import { User, UserSchema } from '../user/entities/user.entity';
 import { ProductSchema } from './entities/product.entity';
 import { Product } from './entities/product.entity';
 import { TagSchema } from './entities/tag.entity';
@@ -14,7 +14,7 @@ import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 
 @Module({
-  providers: [ProductService, ShopifyService],
+  providers: [ProductService],
   controllers: [ProductController],
   imports: [
     ShopifyModule,
@@ -22,6 +22,7 @@ import { ProductService } from './product.service';
     ScraperModule,
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     MongooseModule.forFeature([{ name: Tag.name, schema: TagSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   exports: [ProductService, MongooseModule],
 })

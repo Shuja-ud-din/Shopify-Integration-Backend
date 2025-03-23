@@ -1,8 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { ITag } from 'src/common/types/product.types';
-
-export type ITagDoc = ITag & Document;
 
 @Schema()
 export class Tag implements ITag {
@@ -10,4 +8,5 @@ export class Tag implements ITag {
   name: string;
 }
 
+export type ITagDoc = HydratedDocument<Tag>;
 export const TagSchema = SchemaFactory.createForClass(Tag);

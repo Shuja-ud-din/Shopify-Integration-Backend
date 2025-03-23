@@ -9,8 +9,13 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { User } from 'src/common/decorators/user.decorator';
+import { StoreGuard } from 'src/common/guards/store.guard';
+import { ITokenPayload } from 'src/common/utils/token';
 
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
 import { CreateProductGroupInterceptor } from './interceptors/createProductGroup.interceptor';
@@ -28,36 +33,56 @@ export class ProductGroupController {
   @UseInterceptors(GetProductGroupsInterceptor)
   @HttpCode(HttpStatus.OK)
   @Get()
-  async getProductGroups() {
-    return this.productGroupService.getProductGroups();
+  @UseGuards(StoreGuard)
+  async getProductGroups(
+    @User() user: ITokenPayload,
+    @Query('store') storeId: string,
+  ) {
+    return this.productGroupService.getProductGroups(storeId, user.id);
   }
 
   @UseInterceptors(GetProductGroupInterceptor)
   @HttpCode(HttpStatus.OK)
   @Get('/:id')
-  async getProductGroup(@Param('id') id: string) {
-    return this.productGroupService.getProductGroup(id);
+  @UseGuards(StoreGuard)
+  async getProductGroup(
+    @Param('id') id: string,
+    @Query('store') storeId: string,
+  ) {
+    return this.productGroupService.getProductGroup(storeId, id);
   }
 
   @UseInterceptors(ScrapeProductGroupInterceptor)
   @HttpCode(HttpStatus.OK)
   @Patch('/scrape/:id')
-  async scrapeProductGroup(@Param('id') id: string) {
-    return this.productGroupService.scrapeProductGroup(id);
+  @UseGuards(StoreGuard)
+  async scrapeProductGroup(
+    @Param('id') id: string,
+    @Query('store') storeId: string,
+  ) {
+    return this.productGroupService.scrapeProductGroup(storeId, id);
   }
 
   @UseInterceptors(CreateProductGroupInterceptor)
   @HttpCode(HttpStatus.CREATED)
   @Post()
+  @UseGuards(StoreGuard)
   async createProductGroup(
+    @User() user: ITokenPayload,
     @Body() createProductGroupDto: CreateProductGroupDto,
+    @Query('store') storeId: string,
   ) {
-    return this.productGroupService.createProductGroup(createProductGroupDto);
+    return this.productGroupService.createProductGroup(
+      user.id,
+      storeId,
+      createProductGroupDto,
+    );
   }
 
   @UseInterceptors(UpdateProductGroupInterceptor)
   @HttpCode(HttpStatus.OK)
   @Put('/:id')
+  @UseGuards(StoreGuard)
   async updateProductGroup(
     @Body() updateProductGroupDto: CreateProductGroupDto,
     @Param('id') id: string,
@@ -71,7 +96,11 @@ export class ProductGroupController {
   @UseInterceptors(DeleteProductGroupInterceptor)
   @HttpCode(HttpStatus.OK)
   @Delete('/:id')
-  async deleteProductGroup(@Param('id') id: string) {
-    return this.productGroupService.deleteProductGroup(id);
+  @UseGuards(StoreGuard)
+  async deleteProductGroup(
+    @Param('id') id: string,
+    @Query('store') storeId: string,
+  ) {
+    return this.productGroupService.deleteProductGroup(storeId, id);
   }
 }

@@ -16,6 +16,7 @@ import { ProductModule } from './modules/product/product.module';
 import { ProductGroupModule } from './modules/product-group/product-group.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { SeedModule } from './modules/seed/seed.module';
+import { ShopifyModule } from './modules/shopify/shopify.module';
 import { EnvValidationSchema } from './validations/env.validation';
 
 @Module({
@@ -67,6 +68,7 @@ import { EnvValidationSchema } from './validations/env.validation';
     AuthModule,
     SeedModule,
     ProductGroupModule,
+    ShopifyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
