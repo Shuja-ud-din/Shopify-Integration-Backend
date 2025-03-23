@@ -26,6 +26,7 @@ export interface IProduct {
   locationId: number;
   fallbackInventoryQuantity: number;
   store: mongoose.Types.ObjectId | IShopifyStore;
+  inventoryItemId: number;
 
   createdAt: Date;
   updatedAt: Date;

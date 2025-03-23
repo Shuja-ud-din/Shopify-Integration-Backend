@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import mongoose from 'mongoose';
 import { IProduct, IScapedProduct } from 'src/common/types/product.types';
 
 import { ScraperService } from '../scraper/scraper.service';
@@ -130,6 +131,8 @@ export class ProductService {
     product.inventoryQuantity = variant.inventory_quantity;
     product.updatedAt = new Date();
     product.hasChanges = false;
+    product.store = new mongoose.Types.ObjectId(storeId);
+    product.inventoryItemId = variant.inventory_item_id;
 
     await product.save();
   }
@@ -161,6 +164,8 @@ export class ProductService {
           sku: variant.sku,
           price: Number(variant.price),
           locationId: locations[0].id,
+          store: new mongoose.Types.ObjectId(storeId),
+          inventoryItemId: variant.inventory_item_id,
           inventoryQuantity: variant.inventory_quantity,
           createdAt: new Date(variant.created_at),
           updatedAt: new Date(variant.updated_at),
@@ -266,6 +271,7 @@ export class ProductService {
           ? product.inventoryQuantity
           : product.fallbackInventoryQuantity,
       locationId: product.locationId,
+      inventoryItemId: product.inventoryItemId,
     });
 
     product.hasChanges = false;

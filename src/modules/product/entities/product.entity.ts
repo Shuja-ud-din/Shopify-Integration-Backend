@@ -63,6 +63,9 @@ export class Product implements IProduct {
   @Prop({ required: true })
   locationId: number;
 
+  @Prop({ required: true })
+  inventoryItemId: number;
+
   @Prop({ default: 5 })
   fallbackInventoryQuantity: number;
 

@@ -12,6 +12,7 @@ interface IShopifyVariant {
   taxable: boolean;
   inventory_quantity: number;
   image_id: number;
+  inventory_item_id: number;
 }
 
 interface IShopifyOption {
@@ -57,17 +58,19 @@ export interface IShopifyProduct {
 
 export interface IShopifyProductUpdate {
   productId: number;
-  variantId: number;
+  inventoryItemId: number;
   locationId: number;
+  variantId: number;
 
   price: number;
   inventory_quantity?: number;
 }
 
 export interface IShopifyInventoryUpdate {
-  variantId: number;
+  inventoryItemId: number;
   available: number;
   locationId: number;
+  storeId: string;
 }
 
 export interface IShopifyStoreInfo {
