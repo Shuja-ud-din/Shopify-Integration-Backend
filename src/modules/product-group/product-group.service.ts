@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { IScapedProduct } from 'src/common/types/product.types';
 
 import { IProductDoc } from '../product/entities/product.entity';
@@ -157,7 +157,7 @@ export class ProductGroupService {
     productGroup.name = name;
     productGroup.description = description;
     productGroup.tags = tags;
-    productGroup.products = productIds as ObjectId[];
+    productGroup.products = productIds as mongoose.Types.ObjectId[];
 
     return productGroup.save();
   }

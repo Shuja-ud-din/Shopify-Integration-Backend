@@ -8,8 +8,11 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { StoreGuard } from 'src/common/guards/store.guard';
 
 import { GetProductDto, UpdateProductDto } from './dtos/getProduct.dto';
 import { BlockProductUpdateInterceptor } from './interceptors/blockProductUpdate.interceptor';
@@ -81,23 +84,32 @@ export class ProductController {
   }
 
   @UseInterceptors(UpdateShopifyProductInterceptor)
+  @UseGuards(StoreGuard)
   @HttpCode(HttpStatus.OK)
   @Put('/shopify/:id')
-  async updateProductToShopify(@Param() params: GetProductDto) {
-    return this.productService.updateDBProductToShopify(params.id);
+  async updateProductToShopify(
+    @Param() params: GetProductDto,
+    @Query('store') storeId: string,
+  ) {
+    return this.productService.updateDBProductToShopify(storeId, params.id);
   }
 
   @UseInterceptors(SyncProductInterceptor)
+  @UseGuards(StoreGuard)
   @HttpCode(HttpStatus.OK)
   @Post('/sync/:id')
-  async syncProduct(@Param() params: GetProductDto) {
-    return this.productService.syncProduct(params.id);
+  async syncProduct(
+    @Param() params: GetProductDto,
+    @Query('store') storeId: string,
+  ) {
+    return this.productService.syncProduct(storeId, params.id);
   }
 
   @UseInterceptors(SyncProductsInterceptor)
+  @UseGuards(StoreGuard)
   @HttpCode(HttpStatus.OK)
   @Post('/sync')
-  async syncProducts() {
-    return this.productService.syncProducts();
+  async syncProducts(@Query('store') storeId: string) {
+    return this.productService.syncProducts(storeId);
   }
 }

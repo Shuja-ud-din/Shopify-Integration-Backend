@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document, ObjectId } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import { IProductGroup } from 'src/common/types/product.types';
 
 export type IProductGroupDoc = IProductGroup & Document;
@@ -19,7 +19,7 @@ export class ProductGroup implements IProductGroup {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
     default: [],
   })
-  products: ObjectId[];
+  products: mongoose.Types.ObjectId[];
 
   @Prop({ default: new Date() })
   createdAt: Date;

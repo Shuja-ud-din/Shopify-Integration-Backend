@@ -1,9 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 import { IUser } from '../../../common/types/user.types';
-
-export type IUserDoc = User & Document;
 
 @Schema()
 export class User implements IUser {
@@ -15,6 +13,10 @@ export class User implements IUser {
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({ default: [] })
+  shopifyStores: string[];
 }
 
+export type IUserDoc = HydratedDocument<User>;
 export const UserSchema = SchemaFactory.createForClass(User);

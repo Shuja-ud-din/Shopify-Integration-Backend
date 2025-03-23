@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 import { IProductDoc } from 'src/modules/product/entities/product.entity';
 
 import { ShopifyProductStatus } from '../enums/product.enum';
@@ -88,7 +88,7 @@ export interface IProductGroup {
   name: string;
   description: string;
   tags: string[];
-  products: IProductDoc[] | ObjectId[];
+  products: IProductDoc[] | mongoose.Types.ObjectId[];
   isScraping: boolean;
 
   createdAt: Date;
