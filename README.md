@@ -32,7 +32,6 @@ shopify-integration-backend/
 │   │   │   ├── db.config.ts
 │   │   │   ├── jwt.config.ts
 │   │   │   ├── redis.config.ts
-│   │   │   └── shopify.config.ts
 │   │   ├── 📁 enums/
 │   │   │   └── product.enum.ts
 │   │   ├── 📁 middlewares/
