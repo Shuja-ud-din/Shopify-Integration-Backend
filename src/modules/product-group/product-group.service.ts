@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { IScapedProduct } from 'src/common/types/product.types';
 
 import { IProductDoc } from '../product/entities/product.entity';
@@ -25,20 +25,27 @@ export class ProductGroupService {
     private scraperService: ScraperService,
   ) {}
 
-  private async updateProductsData(products: IScapedProduct[]) {
+  private async updateProductsData(
+    storeId: string,
+    products: IScapedProduct[],
+  ) {
     for (const product of products) {
       try {
         const updatedProduct =
           await this.productService.updateScrappedProduct(product);
 
         if (!updatedProduct.shopifyUpdateBlocked) {
-          await this.productService.updateProductToShopify(product.id, {
-            productId: updatedProduct.shopifyVariantId,
-            variantId: updatedProduct.shopifyVariantId,
-            price: product.price,
-            inventory_quantity: product.stockQty,
-            locationId: updatedProduct.locationId,
-          });
+          await this.productService.updateProductToShopify(
+            storeId,
+            product.id,
+            {
+              productId: updatedProduct.shopifyVariantId,
+              variantId: updatedProduct.shopifyVariantId,
+              price: product.price,
+              inventory_quantity: product.stockQty,
+              locationId: updatedProduct.locationId,
+            },
+          );
         }
       } catch (err) {
         console.error(err);
@@ -46,14 +53,22 @@ export class ProductGroupService {
     }
   }
 
-  async getProductGroups(): Promise<IProductGroupDoc[]> {
-    return this.productGroupModel.find().populate('products');
+  async getProductGroups(
+    storeId: string,
+    userId: string,
+  ): Promise<IProductGroupDoc[]> {
+    return this.productGroupModel
+      .find({ store: storeId, user: userId })
+      .populate('products');
   }
 
-  async getProductGroup(id: string): Promise<IProductGroupDoc> {
+  async getProductGroup(
+    storeId: string,
+    id: string,
+  ): Promise<IProductGroupDoc> {
     try {
       const productGroup = await this.productGroupModel
-        .findById(id)
+        .findOne({ _id: id, store: storeId })
         .populate('products');
 
       if (!productGroup) {
@@ -67,7 +82,7 @@ export class ProductGroupService {
     }
   }
 
-  async scrapeProductGroup(id: string) {
+  async scrapeProductGroup(storeId: string, id: string) {
     try {
       const productGroup = await this.productGroupModel
         .findById(id)
@@ -83,7 +98,7 @@ export class ProductGroupService {
       this.scraperService
         .scrapeProducts(productGroup.products as IProductDoc[])
         .then(async (products) => {
-          await this.updateProductsData(products);
+          await this.updateProductsData(storeId, products);
           productGroup.isScraping = false;
           await productGroup.save();
         });
@@ -96,9 +111,11 @@ export class ProductGroupService {
   }
 
   async createProductGroup(
-    createProductGroupDto: CreateProductGroupDto,
+    userId: string,
+    store: string,
+    payload: CreateProductGroupDto,
   ): Promise<IProductGroupDoc> {
-    const { name, description, tags } = createProductGroupDto;
+    const { name, description, tags } = payload;
 
     const nameFound = await this.productGroupModel.findOne({ name });
     if (nameFound) {
@@ -122,6 +139,8 @@ export class ProductGroupService {
       description,
       tags,
       products: productIds,
+      store: store,
+      user: userId,
     });
 
     return productGroup.save();
@@ -158,13 +177,17 @@ export class ProductGroupService {
     productGroup.name = name;
     productGroup.description = description;
     productGroup.tags = tags;
-    productGroup.products = productIds as ObjectId[];
+    productGroup.products = productIds as mongoose.Types.ObjectId[];
 
     return productGroup.save();
   }
 
-  async deleteProductGroup(id: string): Promise<boolean> {
-    const productGroup = await this.productGroupModel.findById(id);
+  async deleteProductGroup(storeId: string, id: string): Promise<boolean> {
+    const productGroup = await this.productGroupModel.findOne({
+      _id: id,
+      store: storeId,
+    });
+
     if (!productGroup) {
       throw new BadRequestException('Group not found');
     }

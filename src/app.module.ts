@@ -10,12 +10,12 @@ import dbConfig from './common/config/db.config';
 import jwtConfig from './common/config/jwt.config';
 import redisConfig from './common/config/redis.config';
 import scraperConfig from './common/config/scraper.config';
-import shopifyConfig from './common/config/shopify.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductGroupModule } from './modules/product-group/product-group.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { SeedModule } from './modules/seed/seed.module';
+import { ShopifyModule } from './modules/shopify/shopify.module';
 import { EnvValidationSchema } from './validations/env.validation';
 
 @Module({
@@ -27,14 +27,7 @@ import { EnvValidationSchema } from './validations/env.validation';
         process.env.NODE_ENV === 'production'
           ? '.env'
           : `.env.${process.env.NODE_ENV || 'development'}`,
-      load: [
-        appConfig,
-        dbConfig,
-        jwtConfig,
-        redisConfig,
-        shopifyConfig,
-        scraperConfig,
-      ],
+      load: [appConfig, dbConfig, jwtConfig, redisConfig, scraperConfig],
       validationSchema: EnvValidationSchema,
       validationOptions: {
         allowUnknown: true,
@@ -67,6 +60,7 @@ import { EnvValidationSchema } from './validations/env.validation';
     AuthModule,
     SeedModule,
     ProductGroupModule,
+    ShopifyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

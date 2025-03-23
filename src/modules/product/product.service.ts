@@ -84,7 +84,9 @@ export class ProductService {
     return existingProduct;
   }
 
-  async syncProduct(id: string) {
+  async syncProduct(storeId: string, id: string) {
+    const store = await this.shopifyService.getStoreById(storeId);
+
     const product = await this.getProductById(id);
 
     if (!product) {
@@ -92,6 +94,7 @@ export class ProductService {
     }
 
     const shopifyProduct = await this.shopifyService.getProduct(
+      store.id,
       product.shopifyProductId,
     );
 
@@ -127,8 +130,9 @@ export class ProductService {
     await product.save();
   }
 
-  async syncProducts() {
-    const shopifyProducts = await this.shopifyService.getProducts();
+  async syncProducts(storeId: string) {
+    const store = await this.shopifyService.getStoreById(storeId);
+    const shopifyProducts = await this.shopifyService.getProducts(store.id);
 
     const products: Partial<IProduct>[] = [];
 
@@ -228,7 +232,7 @@ export class ProductService {
     }
   }
 
-  async updateDBProductToShopify(id: string) {
+  async updateDBProductToShopify(storeId: string, id: string) {
     const product = await this.getProductById(id);
 
     if (!product) {
@@ -243,7 +247,7 @@ export class ProductService {
       throw new BadRequestException('Update to Shopify blocked');
     }
 
-    await this.shopifyService.updateProduct({
+    await this.shopifyService.updateProduct(storeId, {
       productId: product.shopifyProductId,
       variantId: product.shopifyVariantId,
       price: product.price,
@@ -256,7 +260,11 @@ export class ProductService {
     await product.save();
   }
 
-  async updateProductToShopify(id: string, payload: IShopifyProductUpdate) {
+  async updateProductToShopify(
+    storeId: string,
+    id: string,
+    payload: IShopifyProductUpdate,
+  ) {
     const product = await this.getProductById(id);
 
     if (!product) {
@@ -271,7 +279,7 @@ export class ProductService {
     product.updatedAt = new Date();
     await product.save();
 
-    await this.shopifyService.updateProduct({
+    await this.shopifyService.updateProduct(storeId, {
       productId: product.shopifyProductId,
       variantId: product.shopifyVariantId,
       ...payload,

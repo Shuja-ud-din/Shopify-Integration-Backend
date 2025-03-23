@@ -1,42 +1,181 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import axios, { AxiosInstance } from 'axios';
+import { Model } from 'mongoose';
+import { ShopifyRequiredScopes } from 'src/common/constants/shopifyScopes';
 import {
   IGetProductsResponse,
   IShopifyInventoryUpdate,
   IShopifyProduct,
   IShopifyProductUpdate,
 } from 'src/common/types/product.types';
+import {
+  IShopifyAccessScopeResponse,
+  IShopifyStoreInfo,
+  IShopifyStoreInfoResponse,
+} from 'src/common/types/shopify.types';
+
+import { User } from '../user/entities/user.entity';
+import { IntegrateStoreDto } from './dtos/integrate-store.dto';
+import { IShopifyStoreDoc, ShopifyStore } from './entities/shopifyStore.entity';
 
 @Injectable()
 export class ShopifyService {
-  private readonly shopifyBaseUrl: string;
-  private readonly shopifyAccessToken: string;
-  private readonly axiosInstance: AxiosInstance;
+  private axiosInstance: AxiosInstance;
 
-  constructor(private readonly configService: ConfigService) {
-    this.shopifyBaseUrl = `https://${this.configService.get('shopify.store')}/admin/api/2023-01/`;
-    this.shopifyAccessToken = this.configService.get('shopify.accessToken');
-    this.axiosInstance = axios.create({
-      baseURL: this.shopifyBaseUrl,
+  constructor(
+    @InjectModel(ShopifyStore.name)
+    private shopifyStoreModel: Model<IShopifyStoreDoc>,
+    @InjectModel(User.name) private userModel: Model<User>,
+  ) {
+    this.axiosInstance = axios.create();
+  }
+
+  private async getAxiosInstance(id: string): Promise<AxiosInstance> {
+    const store = await this.shopifyStoreModel.findById(id);
+
+    if (!store) {
+      throw new NotFoundException('Store not found');
+    }
+
+    return axios.create({
+      baseURL: `${store.url}/admin/api/2023-01`,
       headers: {
-        'X-Shopify-Access-Token': this.shopifyAccessToken,
+        'X-Shopify-Access-Token': store.accessToken,
       },
     });
   }
 
-  async getProductsCount(): Promise<number> {
-    const { data } = await this.axiosInstance.get(
-      `${this.shopifyBaseUrl}/products/count.json`,
+  private async getStoreInfo(
+    payload: IntegrateStoreDto,
+  ): Promise<IShopifyStoreInfo> {
+    const { url, accessToken } = payload;
+
+    try {
+      const { data } = await this.axiosInstance.get<IShopifyStoreInfoResponse>(
+        `${url}/admin/api/2023-01/shop.json`,
+        {
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+          },
+        },
+      );
+
+      return data.shop;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message || 'Something went wrong',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async checkPermissions(payload: IntegrateStoreDto): Promise<boolean> {
+    const { url, accessToken } = payload;
+
+    const urlExists = await this.shopifyStoreModel.findOne({ url });
+
+    if (urlExists) {
+      throw new HttpException(
+        'Store already integrated',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const { data } = await this.axiosInstance.get<IShopifyAccessScopeResponse>(
+      `${url}/admin/oauth/access_scopes.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+        },
+      },
     );
+
+    const { access_scopes } = data;
+
+    const missingScopes = ShopifyRequiredScopes.filter(
+      (scope) => !access_scopes.find((s) => s.handle === scope),
+    );
+
+    if (missingScopes.length) {
+      console.error('Missing required permissions:', missingScopes);
+
+      throw new HttpException(
+        'Missing required permissions',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return true;
+  }
+
+  async integrateStore(payload: IntegrateStoreDto, userId: string) {
+    try {
+      const [storeInfo, hasPermissions] = await Promise.all([
+        this.getStoreInfo(payload),
+        this.checkPermissions(payload),
+      ]);
+
+      if (!hasPermissions) {
+        throw new HttpException(
+          'Missing required permissions',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const store = new this.shopifyStoreModel({
+        ...storeInfo,
+        ...payload,
+        userId,
+        url: payload.url.replace(/\/$/, ''),
+      });
+
+      await store.save();
+
+      const user = await this.userModel.findById(userId);
+      user.shopifyStores.push(store.id);
+      await user.save();
+
+      return store;
+    } catch (error) {
+      console.error(error);
+      if (error.status === HttpStatus.UNAUTHORIZED) {
+        throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
+      } else {
+        throw new HttpException(
+          error.message || 'Something went wrong',
+          error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
+  private async getProductsCount(storeId: string): Promise<number> {
+    const shopifyApi = await this.getAxiosInstance(storeId);
+    const { data } = await shopifyApi.get('/products/count.json');
 
     return data.count;
   }
 
-  async getProducts(): Promise<IShopifyProduct[]> {
-    const count = await this.getProductsCount();
+  async getStoreById(id: string): Promise<IShopifyStoreDoc> {
+    const store = await this.shopifyStoreModel.findById(id);
 
-    console.log('Total products:', count);
+    if (!store) {
+      throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
+    }
+
+    return store;
+  }
+
+  async getProducts(storeId: string): Promise<IShopifyProduct[]> {
+    const shopifyApi = await this.getAxiosInstance(storeId);
+    const count = await this.getProductsCount(storeId);
 
     const limit = 250;
     const pages = Math.ceil(count / limit);
@@ -45,15 +184,15 @@ export class ShopifyService {
 
     try {
       for (let i = 1; i <= pages; i++) {
-        const url = `${this.shopifyBaseUrl}/products.json`;
-
-        const { data, headers } =
-          await this.axiosInstance.get<IGetProductsResponse>(url, {
+        const { data, headers } = await shopifyApi.get<IGetProductsResponse>(
+          '/products.json',
+          {
             params: {
               limit,
               page_info,
             },
-          });
+          },
+        );
 
         if (headers.link) {
           page_info = headers.link?.match(/page_info=([^&>]+)/)?.[1];
@@ -68,29 +207,52 @@ export class ShopifyService {
     } catch (error) {
       console.error(error);
       throw new HttpException(
-        'Failed to fetch all products from Shopify',
-        HttpStatus.BAD_REQUEST,
+        error.message || 'Something went wrong',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  async getProduct(id: number): Promise<IShopifyProduct> {
-    const { data } = await this.axiosInstance.get(`products/${id}.json`);
+  async getProduct(storeId: string, id: number): Promise<IShopifyProduct> {
+    const shopifyApi = await this.getAxiosInstance(storeId);
+    const { data } = await shopifyApi.get(`/products/${id}.json`);
 
     return data.product;
   }
 
+  async updateInventory(
+    inventoryItemId: number,
+    available: number,
+    locationId: number,
+  ): Promise<void> {
+    try {
+      await this.axiosInstance.post(`/inventory_levels/set.json`, {
+        location_id: locationId,
+        inventory_item_id: inventoryItemId,
+        available: available,
+      });
+      console.log('Inventory updated successfully');
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+      // throw new HttpException(
+      //   error.message || 'Something went wrong',
+      //   error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      // );
+    }
+  }
+
   async updateProduct(
+    storeId: string,
     payload: IShopifyProductUpdate,
   ): Promise<IShopifyProduct> {
     const { productId, variantId, ...rest } = payload;
+
+    const shopifyApi = await this.getAxiosInstance(storeId);
+
     try {
-      const { data } = await this.axiosInstance.put(
-        `variants/${variantId}.json`,
-        {
-          variant: rest,
-        },
-      );
+      const { data } = await shopifyApi.put(`/variants/${variantId}.json`, {
+        variant: rest,
+      });
 
       await this.updateProductInventory({
         variantId,
