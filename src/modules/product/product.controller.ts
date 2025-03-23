@@ -65,8 +65,9 @@ export class ProductController {
   @UseInterceptors(GetTagsInterceptor)
   @HttpCode(HttpStatus.OK)
   @Get('/tags')
-  async getTags() {
-    return this.productService.getTags();
+  @UseGuards(StoreGuard)
+  async getTags(@Query('store') storeId: string) {
+    return this.productService.getTags(storeId);
   }
 
   @UseInterceptors(ScrapeProductInterceptor)

@@ -175,7 +175,7 @@ export class ProductService {
 
     for (const tag of tags) {
       await this.tagModel.findOneAndUpdate(
-        { name: tag },
+        { name: tag, store: storeId },
         { name: tag },
         { upsert: true, new: true },
       );
@@ -302,8 +302,8 @@ export class ProductService {
     return products;
   }
 
-  async getTags(): Promise<ITagDoc[]> {
-    const tags = await this.tagModel.find();
+  async getTags(storeId: string): Promise<ITagDoc[]> {
+    const tags = await this.tagModel.find({ store: storeId });
 
     return tags;
   }

@@ -8,14 +8,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import axios, { AxiosInstance } from 'axios';
 import { Model } from 'mongoose';
 import { ShopifyRequiredScopes } from 'src/common/constants/shopifyScopes';
+import { IGetProductsResponse } from 'src/common/types/product.types';
 import {
-  IGetProductsResponse,
+  IShopifyAccessScopeResponse,
   IShopifyInventoryUpdate,
   IShopifyProduct,
   IShopifyProductUpdate,
-} from 'src/common/types/product.types';
-import {
-  IShopifyAccessScopeResponse,
   IShopifyStoreInfo,
   IShopifyStoreInfoResponse,
   IShopifyStoreLocation,
