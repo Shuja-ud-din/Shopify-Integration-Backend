@@ -25,19 +25,26 @@ export class ProductGroupService {
     private scraperService: ScraperService,
   ) {}
 
-  private async updateProductsData(products: IScapedProduct[]) {
+  private async updateProductsData(
+    storeId: string,
+    products: IScapedProduct[],
+  ) {
     for (const product of products) {
       try {
         const updatedProduct =
           await this.productService.updateScrappedProduct(product);
 
         if (!updatedProduct.shopifyUpdateBlocked) {
-          await this.productService.updateProductToShopify(product.id, {
-            productId: updatedProduct.shopifyVariantId,
-            variantId: updatedProduct.shopifyVariantId,
-            price: product.price,
-            inventory_quantity: product.stockQty,
-          });
+          await this.productService.updateProductToShopify(
+            storeId,
+            product.id,
+            {
+              productId: updatedProduct.shopifyVariantId,
+              variantId: updatedProduct.shopifyVariantId,
+              price: product.price,
+              inventory_quantity: product.stockQty,
+            },
+          );
         }
       } catch (err) {
         console.error(err);
@@ -66,7 +73,7 @@ export class ProductGroupService {
     }
   }
 
-  async scrapeProductGroup(id: string) {
+  async scrapeProductGroup(storeId: string, id: string) {
     try {
       const productGroup = await this.productGroupModel
         .findById(id)
@@ -82,7 +89,7 @@ export class ProductGroupService {
       this.scraperService
         .scrapeProducts(productGroup.products as IProductDoc[])
         .then(async (products) => {
-          await this.updateProductsData(products);
+          await this.updateProductsData(storeId, products);
           productGroup.isScraping = false;
           await productGroup.save();
         });

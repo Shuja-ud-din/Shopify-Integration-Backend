@@ -9,8 +9,11 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { StoreGuard } from 'src/common/guards/store.guard';
 
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
 import { CreateProductGroupInterceptor } from './interceptors/createProductGroup.interceptor';
@@ -40,10 +43,14 @@ export class ProductGroupController {
   }
 
   @UseInterceptors(ScrapeProductGroupInterceptor)
+  @UseGuards(StoreGuard)
   @HttpCode(HttpStatus.OK)
   @Patch('/scrape/:id')
-  async scrapeProductGroup(@Param('id') id: string) {
-    return this.productGroupService.scrapeProductGroup(id);
+  async scrapeProductGroup(
+    @Param('id') id: string,
+    @Query('store') storeId: string,
+  ) {
+    return this.productGroupService.scrapeProductGroup(storeId, id);
   }
 
   @UseInterceptors(CreateProductGroupInterceptor)

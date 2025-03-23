@@ -19,8 +19,9 @@ import { IShopifyStoreDoc, ShopifyStore } from './entities/shopifyStore.entity';
 
 @Injectable()
 export class ShopifyService {
+  private axiosInstance: AxiosInstance;
+
   constructor(
-    private readonly axiosInstance: AxiosInstance,
     @InjectModel(ShopifyStore.name)
     private shopifyStoreModel: Model<IShopifyStoreDoc>,
   ) {}

@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
@@ -13,6 +14,7 @@ import { ShopifyService } from './shopify.service';
   providers: [ShopifyService],
   controllers: [ShopifyController],
   imports: [
+    HttpModule,
     MongooseModule.forFeature([
       { name: ShopifyStore.name, schema: ShopifyStoreSchema },
     ]),
