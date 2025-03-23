@@ -75,8 +75,11 @@ export interface IProduct {
   profitMargin?: number;
   scrapperUrls: string[];
   hasChanges: boolean;
+  available: boolean;
   shopifyUpdateBlocked: boolean;
   locationId: number;
+  fallbackInventoryQuantity: number;
+  store: mongoose.Types.ObjectId | IShopifyStore;
 
   createdAt: Date;
   updatedAt: Date;

@@ -18,6 +18,8 @@ import {
   IShopifyAccessScopeResponse,
   IShopifyStoreInfo,
   IShopifyStoreInfoResponse,
+  IShopifyStoreLocation,
+  IShopifyStoreLocationsResponse,
 } from 'src/common/types/shopify.types';
 
 import { User } from '../user/entities/user.entity';
@@ -171,6 +173,14 @@ export class ShopifyService {
     }
 
     return store;
+  }
+
+  async getStoreLocations(storeId: string): Promise<IShopifyStoreLocation[]> {
+    const shopifyApi = await this.getAxiosInstance(storeId);
+    const { data } =
+      await shopifyApi.get<IShopifyStoreLocationsResponse>('/locations.json');
+
+    return data.locations;
   }
 
   async getProducts(storeId: string): Promise<IShopifyProduct[]> {

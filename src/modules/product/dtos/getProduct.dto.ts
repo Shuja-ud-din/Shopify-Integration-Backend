@@ -25,4 +25,9 @@ export class UpdateProductDto {
   @IsNumber()
   @Min(0)
   profitMargin?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  fallbackInventoryQuantity?: number;
 }
