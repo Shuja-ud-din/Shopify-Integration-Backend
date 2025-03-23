@@ -1,6 +1,11 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { Model } from 'mongoose';
 import { ShopifyRequiredScopes } from 'src/common/constants/shopifyScopes';
 import {
@@ -14,6 +19,7 @@ import {
   IShopifyStoreInfoResponse,
 } from 'src/common/types/shopify.types';
 
+import { User } from '../user/entities/user.entity';
 import { IntegrateStoreDto } from './dtos/integrate-store.dto';
 import { IShopifyStoreDoc, ShopifyStore } from './entities/shopifyStore.entity';
 
@@ -24,16 +30,24 @@ export class ShopifyService {
   constructor(
     @InjectModel(ShopifyStore.name)
     private shopifyStoreModel: Model<IShopifyStoreDoc>,
-  ) {}
+    @InjectModel(User.name) private userModel: Model<User>,
+  ) {
+    this.axiosInstance = axios.create();
+  }
 
-  private async getShopifyBaseUrl(id: string): Promise<string> {
+  private async getAxiosInstance(id: string): Promise<AxiosInstance> {
     const store = await this.shopifyStoreModel.findById(id);
 
     if (!store) {
-      throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('Store not found');
     }
 
-    return `${store.url}/admin/api/2023-01`;
+    return axios.create({
+      baseURL: `${store.url}/admin/api/2023-01`,
+      headers: {
+        'X-Shopify-Access-Token': store.accessToken,
+      },
+    });
   }
 
   private async getStoreInfo(
@@ -55,8 +69,8 @@ export class ShopifyService {
     } catch (error) {
       console.error(error);
       throw new HttpException(
-        'Failed to integrate with Shopify store',
-        HttpStatus.BAD_REQUEST,
+        error.message || 'Something went wrong',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -64,52 +78,43 @@ export class ShopifyService {
   private async checkPermissions(payload: IntegrateStoreDto): Promise<boolean> {
     const { url, accessToken } = payload;
 
-    try {
-      const urlExists = await this.shopifyStoreModel.findOne({ url });
+    const urlExists = await this.shopifyStoreModel.findOne({ url });
 
-      if (urlExists) {
-        throw new HttpException(
-          'Store already integrated',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const { data } =
-        await this.axiosInstance.get<IShopifyAccessScopeResponse>(
-          `${url}/admin/api/2024-01/access_scopes.json`,
-          {
-            headers: {
-              'X-Shopify-Access-Token': accessToken,
-            },
-          },
-        );
-
-      const { access_scopes } = data;
-
-      const missingScopes = ShopifyRequiredScopes.filter(
-        (scope) => !access_scopes.find((s) => s.handle === scope),
-      );
-
-      if (missingScopes.length) {
-        console.error('Missing required permissions:', missingScopes);
-
-        throw new HttpException(
-          'Missing required permissions',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      return true;
-    } catch (error) {
-      console.error(error);
+    if (urlExists) {
       throw new HttpException(
-        'Invalid Shopify access token',
+        'Store already integrated',
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const { data } = await this.axiosInstance.get<IShopifyAccessScopeResponse>(
+      `${url}/admin/oauth/access_scopes.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+        },
+      },
+    );
+
+    const { access_scopes } = data;
+
+    const missingScopes = ShopifyRequiredScopes.filter(
+      (scope) => !access_scopes.find((s) => s.handle === scope),
+    );
+
+    if (missingScopes.length) {
+      console.error('Missing required permissions:', missingScopes);
+
+      throw new HttpException(
+        'Missing required permissions',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return true;
   }
 
-  async integrateStore(payload: IntegrateStoreDto) {
+  async integrateStore(payload: IntegrateStoreDto, userId: string) {
     try {
       const [storeInfo, hasPermissions] = await Promise.all([
         this.getStoreInfo(payload),
@@ -126,24 +131,33 @@ export class ShopifyService {
       const store = new this.shopifyStoreModel({
         ...storeInfo,
         ...payload,
+        userId,
+        url: payload.url.replace(/\/$/, ''),
       });
 
       await store.save();
 
+      const user = await this.userModel.findById(userId);
+      user.shopifyStores.push(store.id);
+      await user.save();
+
       return store;
     } catch (error) {
       console.error(error);
-      throw new HttpException(
-        'Failed to integrate with Shopify store',
-        HttpStatus.BAD_REQUEST,
-      );
+      if (error.status === HttpStatus.UNAUTHORIZED) {
+        throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
+      } else {
+        throw new HttpException(
+          error.message || 'Something went wrong',
+          error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
   private async getProductsCount(storeId: string): Promise<number> {
-    const url = await this.getShopifyBaseUrl(storeId);
-
-    const { data } = await this.axiosInstance.get(`${url}/products/count.json`);
+    const shopifyApi = await this.getAxiosInstance(storeId);
+    const { data } = await shopifyApi.get('/products/count.json');
 
     return data.count;
   }
@@ -159,7 +173,7 @@ export class ShopifyService {
   }
 
   async getProducts(storeId: string): Promise<IShopifyProduct[]> {
-    const baseUrl = await this.getShopifyBaseUrl(storeId);
+    const shopifyApi = await this.getAxiosInstance(storeId);
     const count = await this.getProductsCount(storeId);
 
     const limit = 250;
@@ -169,15 +183,15 @@ export class ShopifyService {
 
     try {
       for (let i = 1; i <= pages; i++) {
-        const url = `${baseUrl}/products.json`;
-
-        const { data, headers } =
-          await this.axiosInstance.get<IGetProductsResponse>(url, {
+        const { data, headers } = await shopifyApi.get<IGetProductsResponse>(
+          '/products.json',
+          {
             params: {
               limit,
               page_info,
             },
-          });
+          },
+        );
 
         if (headers.link) {
           page_info = headers.link?.match(/page_info=([^&>]+)/)?.[1];
@@ -192,17 +206,15 @@ export class ShopifyService {
     } catch (error) {
       console.error(error);
       throw new HttpException(
-        'Failed to fetch all products from Shopify',
-        HttpStatus.BAD_REQUEST,
+        error.message || 'Something went wrong',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async getProduct(storeId: string, id: number): Promise<IShopifyProduct> {
-    const baseUrl = await this.getShopifyBaseUrl(storeId);
-    const { data } = await this.axiosInstance.get(
-      `${baseUrl}/products/${id}.json`,
-    );
+    const shopifyApi = await this.getAxiosInstance(storeId);
+    const { data } = await shopifyApi.get(`/products/${id}.json`);
 
     return data.product;
   }
@@ -221,6 +233,10 @@ export class ShopifyService {
       console.log('Inventory updated successfully');
     } catch (error) {
       console.error('Error updating inventory:', error);
+      // throw new HttpException(
+      //   error.message || 'Something went wrong',
+      //   error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      // );
     }
   }
 
@@ -230,15 +246,12 @@ export class ShopifyService {
   ): Promise<IShopifyProduct> {
     const { productId, variantId, ...rest } = payload;
 
-    const url = await this.getShopifyBaseUrl(storeId);
+    const shopifyApi = await this.getAxiosInstance(storeId);
 
     try {
-      const { data } = await this.axiosInstance.put(
-        `${url}/variants/${variantId}.json`,
-        {
-          variant: rest,
-        },
-      );
+      const { data } = await shopifyApi.put(`/variants/${variantId}.json`, {
+        variant: rest,
+      });
 
       return data;
     } catch (error) {

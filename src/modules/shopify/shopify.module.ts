@@ -1,8 +1,8 @@
-import { HttpModule } from '@nestjs/axios';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 
+import { User, UserSchema } from '../user/entities/user.entity';
 import {
   ShopifyStore,
   ShopifyStoreSchema,
@@ -14,10 +14,10 @@ import { ShopifyService } from './shopify.service';
   providers: [ShopifyService],
   controllers: [ShopifyController],
   imports: [
-    HttpModule,
     MongooseModule.forFeature([
       { name: ShopifyStore.name, schema: ShopifyStoreSchema },
     ]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   exports: [ShopifyService],
 })
