@@ -5,6 +5,10 @@ export const ShopifyRequiredScopes = [
   'read_product_listings',
   'write_products',
   'read_products',
+
   'write_publications',
   'read_publications',
+
+  'write_inventory',
+  'read_inventory',
 ];

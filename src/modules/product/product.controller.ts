@@ -34,53 +34,73 @@ export class ProductController {
   @UseInterceptors(GetProductsInterceptor)
   @HttpCode(HttpStatus.OK)
   @Get('')
-  async getProducts() {
-    return this.productService.getProducts();
+  @UseGuards(StoreGuard)
+  async getProducts(@Query('store') storeId: string) {
+    return this.productService.getProducts(storeId);
   }
 
   @UseInterceptors(GetProductInterceptor)
   @HttpCode(HttpStatus.OK)
   @Get('/details/:id')
-  async getProductById(@Param() params: GetProductDto) {
-    return this.productService.getProductById(params.id);
+  @UseGuards(StoreGuard)
+  async getProductById(
+    @Param() params: GetProductDto,
+    @Query('store') storeId: string,
+  ) {
+    return this.productService.getProductById(storeId, params.id);
   }
 
   @UseInterceptors(UpdateProductInterceptor)
   @HttpCode(HttpStatus.OK)
   @Put('/:id')
+  @UseGuards(StoreGuard)
   async updateProduct(
     @Param() params: GetProductDto,
     @Body() body: UpdateProductDto,
+    @Query('store') storeId: string,
   ) {
-    return this.productService.updateProduct(params.id, body);
+    return this.productService.updateProduct(params.id, storeId, body);
   }
 
   @UseInterceptors(GetTagsInterceptor)
   @HttpCode(HttpStatus.OK)
   @Get('/tags')
-  async getTags() {
-    return this.productService.getTags();
+  @UseGuards(StoreGuard)
+  async getTags(@Query('store') storeId: string) {
+    return this.productService.getTags(storeId);
   }
 
   @UseInterceptors(ScrapeProductInterceptor)
   @HttpCode(HttpStatus.OK)
   @Patch('/scrape/:id')
-  async scrapeProduct(@Param() params: GetProductDto) {
-    return this.productService.scrapeProduct(params.id);
+  @UseGuards(StoreGuard)
+  async scrapeProduct(
+    @Param() params: GetProductDto,
+    @Query('store') storeId: string,
+  ) {
+    return this.productService.scrapeProduct(storeId, params.id);
   }
 
   @UseInterceptors(BlockProductUpdateInterceptor)
   @HttpCode(HttpStatus.OK)
   @Patch('/blockUpdate/:id')
-  async blockProductUpdate(@Param() params: GetProductDto) {
-    return this.productService.blockProductUpdate(params.id);
+  @UseGuards(StoreGuard)
+  async blockProductUpdate(
+    @Param() params: GetProductDto,
+    @Query('store') storeId: string,
+  ) {
+    return this.productService.blockProductUpdate(storeId, params.id);
   }
 
   @UseInterceptors(UnblockProductUpdateInterceptor)
   @HttpCode(HttpStatus.OK)
   @Patch('/unblockUpdate/:id')
-  async unblockProductUpdate(@Param() params: GetProductDto) {
-    return this.productService.unblockProductUpdate(params.id);
+  @UseGuards(StoreGuard)
+  async unblockProductUpdate(
+    @Param() params: GetProductDto,
+    @Query('store') storeId: string,
+  ) {
+    return this.productService.unblockProductUpdate(storeId, params.id);
   }
 
   @UseInterceptors(UpdateShopifyProductInterceptor)
@@ -91,7 +111,7 @@ export class ProductController {
     @Param() params: GetProductDto,
     @Query('store') storeId: string,
   ) {
-    return this.productService.updateDBProductToShopify(storeId, params.id);
+    return this.productService.updateProductToShopify(storeId, params.id);
   }
 
   @UseInterceptors(SyncProductInterceptor)

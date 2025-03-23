@@ -31,21 +31,13 @@ export class ProductGroupService {
   ) {
     for (const product of products) {
       try {
-        const updatedProduct =
-          await this.productService.updateScrappedProduct(product);
+        const updatedProduct = await this.productService.updateScrappedProduct(
+          storeId,
+          product,
+        );
 
         if (!updatedProduct.shopifyUpdateBlocked) {
-          await this.productService.updateProductToShopify(
-            storeId,
-            product.id,
-            {
-              productId: updatedProduct.shopifyVariantId,
-              variantId: updatedProduct.shopifyVariantId,
-              price: product.price,
-              inventory_quantity: product.stockQty,
-              locationId: updatedProduct.locationId,
-            },
-          );
+          await this.productService.updateProductToShopify(storeId, product.id);
         }
       } catch (err) {
         console.error(err);

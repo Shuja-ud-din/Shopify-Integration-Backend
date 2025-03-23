@@ -8,16 +8,16 @@ import { InjectModel } from '@nestjs/mongoose';
 import axios, { AxiosInstance } from 'axios';
 import { Model } from 'mongoose';
 import { ShopifyRequiredScopes } from 'src/common/constants/shopifyScopes';
+import { IGetProductsResponse } from 'src/common/types/product.types';
 import {
-  IGetProductsResponse,
+  IShopifyAccessScopeResponse,
   IShopifyInventoryUpdate,
   IShopifyProduct,
   IShopifyProductUpdate,
-} from 'src/common/types/product.types';
-import {
-  IShopifyAccessScopeResponse,
   IShopifyStoreInfo,
   IShopifyStoreInfoResponse,
+  IShopifyStoreLocation,
+  IShopifyStoreLocationsResponse,
 } from 'src/common/types/shopify.types';
 
 import { User } from '../user/entities/user.entity';
@@ -173,6 +173,14 @@ export class ShopifyService {
     return store;
   }
 
+  async getStoreLocations(storeId: string): Promise<IShopifyStoreLocation[]> {
+    const shopifyApi = await this.getAxiosInstance(storeId);
+    const { data } =
+      await shopifyApi.get<IShopifyStoreLocationsResponse>('/locations.json');
+
+    return data.locations;
+  }
+
   async getProducts(storeId: string): Promise<IShopifyProduct[]> {
     const shopifyApi = await this.getAxiosInstance(storeId);
     const count = await this.getProductsCount(storeId);
@@ -220,32 +228,11 @@ export class ShopifyService {
     return data.product;
   }
 
-  async updateInventory(
-    inventoryItemId: number,
-    available: number,
-    locationId: number,
-  ): Promise<void> {
-    try {
-      await this.axiosInstance.post(`/inventory_levels/set.json`, {
-        location_id: locationId,
-        inventory_item_id: inventoryItemId,
-        available: available,
-      });
-      console.log('Inventory updated successfully');
-    } catch (error) {
-      console.error('Error updating inventory:', error);
-      // throw new HttpException(
-      //   error.message || 'Something went wrong',
-      //   error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      // );
-    }
-  }
-
   async updateProduct(
     storeId: string,
     payload: IShopifyProductUpdate,
   ): Promise<IShopifyProduct> {
-    const { productId, variantId, ...rest } = payload;
+    const { productId, inventoryItemId, variantId, ...rest } = payload;
 
     const shopifyApi = await this.getAxiosInstance(storeId);
 
@@ -255,9 +242,10 @@ export class ShopifyService {
       });
 
       await this.updateProductInventory({
-        variantId,
+        inventoryItemId,
         available: rest.inventory_quantity,
         locationId: rest.locationId,
+        storeId,
       });
 
       return data;
@@ -271,14 +259,17 @@ export class ShopifyService {
   }
 
   private async updateProductInventory({
-    variantId,
+    inventoryItemId,
     available,
     locationId,
+    storeId,
   }: IShopifyInventoryUpdate): Promise<void> {
     try {
-      await this.axiosInstance.post(`/inventory_levels/set.json`, {
+      const shopifyApi = await this.getAxiosInstance(storeId);
+
+      await shopifyApi.post(`/inventory_levels/set.json`, {
         location_id: locationId,
-        inventory_item_id: variantId,
+        inventory_item_id: inventoryItemId,
         available: available,
       });
       console.log('Inventory updated successfully');

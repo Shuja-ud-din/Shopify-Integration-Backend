@@ -6,11 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  IProduct,
-  IScapedProduct,
-  IShopifyProductUpdate,
-} from 'src/common/types/product.types';
+import mongoose from 'mongoose';
+import { IProduct, IScapedProduct } from 'src/common/types/product.types';
 
 import { ScraperService } from '../scraper/scraper.service';
 import { ShopifyService } from '../shopify/shopify.service';
@@ -28,16 +25,19 @@ export class ProductService {
     @InjectModel(Tag.name) private tagModel: Model<ITagDoc>,
   ) {}
 
-  async getProducts(): Promise<IProductDoc[]> {
-    const products = await this.productModel.find();
+  async getProducts(storeId: string): Promise<IProductDoc[]> {
+    const products = await this.productModel.find({ store: storeId });
 
     return products;
   }
 
-  async getProductById(id: string): Promise<IProductDoc | null> {
+  async getProductById(
+    storeId: string,
+    id: string,
+  ): Promise<IProductDoc | null> {
     try {
       const product = await this.productModel
-        .findById(id)
+        .findOne({ _id: id, store: storeId })
         .populate('tags')
         .exec();
 
@@ -56,15 +56,16 @@ export class ProductService {
 
   async updateProduct(
     id: string,
+    storeId: string,
     payload: UpdateProductDto,
   ): Promise<IProductDoc> {
-    const existingProduct = await this.getProductById(id);
+    const existingProduct = await this.getProductById(storeId, id);
 
     if (!existingProduct) {
       throw new NotFoundException('Product not found');
     }
 
-    const { urls, profitMargin } = payload;
+    const { urls, profitMargin, fallbackInventoryQuantity } = payload;
 
     if (urls && this.containesDuplicateUrls(urls)) {
       throw new NotAcceptableException('Duplicate urls are not allowed');
@@ -78,6 +79,10 @@ export class ProductService {
       existingProduct.profitMargin = profitMargin;
     }
 
+    if (fallbackInventoryQuantity) {
+      existingProduct.fallbackInventoryQuantity = fallbackInventoryQuantity;
+    }
+
     existingProduct.updatedAt = new Date();
     await existingProduct.save();
 
@@ -87,7 +92,7 @@ export class ProductService {
   async syncProduct(storeId: string, id: string) {
     const store = await this.shopifyService.getStoreById(storeId);
 
-    const product = await this.getProductById(id);
+    const product = await this.getProductById(storeId, id);
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -126,12 +131,15 @@ export class ProductService {
     product.inventoryQuantity = variant.inventory_quantity;
     product.updatedAt = new Date();
     product.hasChanges = false;
+    product.store = new mongoose.Types.ObjectId(storeId);
+    product.inventoryItemId = variant.inventory_item_id;
 
     await product.save();
   }
 
   async syncProducts(storeId: string) {
     const store = await this.shopifyService.getStoreById(storeId);
+    const locations = await this.shopifyService.getStoreLocations(store.id);
     const shopifyProducts = await this.shopifyService.getProducts(store.id);
 
     const products: Partial<IProduct>[] = [];
@@ -155,6 +163,9 @@ export class ProductService {
               ?.src || product.image?.src,
           sku: variant.sku,
           price: Number(variant.price),
+          locationId: locations[0].id,
+          store: new mongoose.Types.ObjectId(storeId),
+          inventoryItemId: variant.inventory_item_id,
           inventoryQuantity: variant.inventory_quantity,
           createdAt: new Date(variant.created_at),
           updatedAt: new Date(variant.updated_at),
@@ -169,7 +180,7 @@ export class ProductService {
 
     for (const tag of tags) {
       await this.tagModel.findOneAndUpdate(
-        { name: tag },
+        { name: tag, store: storeId },
         { name: tag },
         { upsert: true, new: true },
       );
@@ -196,13 +207,16 @@ export class ProductService {
     });
   }
 
-  async updateScrappedProduct(product: IScapedProduct): Promise<IProductDoc> {
-    const productFound = await this.getProductById(product.id);
+  async updateScrappedProduct(
+    storeId: string,
+    product: IScapedProduct,
+  ): Promise<IProductDoc> {
+    const productFound = await this.getProductById(storeId, product.id);
     productFound.price = parseFloat(
       (product.price * productFound.profitMargin * 10).toFixed(2),
     );
     productFound.inventoryQuantity = product.stockQty;
-    // productFound.image = product.imageUrl;
+    productFound.available = product.available;
     productFound.updatedAt = new Date();
     productFound.hasChanges = true;
 
@@ -211,9 +225,9 @@ export class ProductService {
     return productFound;
   }
 
-  async scrapeProduct(id: string) {
+  async scrapeProduct(storeId: string, id: string) {
     try {
-      const product = await this.getProductById(id);
+      const product = await this.getProductById(storeId, id);
 
       if (!product) {
         throw new NotFoundException('Product not found');
@@ -225,15 +239,15 @@ export class ProductService {
 
       const scrapedProduct = await this.scraperService.scrapeProduct(product);
 
-      await this.updateScrappedProduct(scrapedProduct);
+      await this.updateScrappedProduct(storeId, scrapedProduct);
     } catch (err) {
       console.log(err);
       throw new BadRequestException(err.message || 'Product not found');
     }
   }
 
-  async updateDBProductToShopify(storeId: string, id: string) {
-    const product = await this.getProductById(id);
+  async updateProductToShopify(storeId: string, id: string) {
+    const product = await this.getProductById(storeId, id);
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -251,8 +265,13 @@ export class ProductService {
       productId: product.shopifyProductId,
       variantId: product.shopifyVariantId,
       price: product.price,
-      inventory_quantity: product.inventoryQuantity,
+      inventory_quantity: !product.available
+        ? 0
+        : product.inventoryQuantity > 0
+          ? product.inventoryQuantity
+          : product.fallbackInventoryQuantity,
       locationId: product.locationId,
+      inventoryItemId: product.inventoryItemId,
     });
 
     product.hasChanges = false;
@@ -260,34 +279,8 @@ export class ProductService {
     await product.save();
   }
 
-  async updateProductToShopify(
-    storeId: string,
-    id: string,
-    payload: IShopifyProductUpdate,
-  ) {
-    const product = await this.getProductById(id);
-
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
-    if (product.shopifyUpdateBlocked) {
-      throw new BadRequestException('Update to Shopify blocked');
-    }
-
-    product.hasChanges = false;
-    product.updatedAt = new Date();
-    await product.save();
-
-    await this.shopifyService.updateProduct(storeId, {
-      productId: product.shopifyProductId,
-      variantId: product.shopifyVariantId,
-      ...payload,
-    });
-  }
-
-  async blockProductUpdate(id: string) {
-    const product = await this.getProductById(id);
+  async blockProductUpdate(storeId: string, id: string) {
+    const product = await this.getProductById(storeId, id);
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -297,8 +290,8 @@ export class ProductService {
     await product.save();
   }
 
-  async unblockProductUpdate(id: string) {
-    const product = await this.getProductById(id);
+  async unblockProductUpdate(storeId: string, id: string) {
+    const product = await this.getProductById(storeId, id);
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -315,8 +308,8 @@ export class ProductService {
     return products;
   }
 
-  async getTags(): Promise<ITagDoc[]> {
-    const tags = await this.tagModel.find();
+  async getTags(storeId: string): Promise<ITagDoc[]> {
+    const tags = await this.tagModel.find({ store: storeId });
 
     return tags;
   }

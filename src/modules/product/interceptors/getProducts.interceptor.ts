@@ -30,6 +30,8 @@ export class GetProductsInterceptor implements NestInterceptor {
               sku: product.sku,
               image: product.image,
               profitMargin: product.profitMargin,
+              available: product.available,
+              fallbackInventoryQuantity: product.fallbackInventoryQuantity,
               createdAt: product.createdAt,
               updatedAt: product.updatedAt,
               inventoryQuantity: product.inventoryQuantity,
