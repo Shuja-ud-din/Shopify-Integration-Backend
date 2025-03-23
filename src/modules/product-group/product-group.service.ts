@@ -43,6 +43,7 @@ export class ProductGroupService {
               variantId: updatedProduct.shopifyVariantId,
               price: product.price,
               inventory_quantity: product.stockQty,
+              locationId: updatedProduct.locationId,
             },
           );
         }

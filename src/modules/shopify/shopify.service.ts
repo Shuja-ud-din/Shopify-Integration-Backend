@@ -10,6 +10,7 @@ import { Model } from 'mongoose';
 import { ShopifyRequiredScopes } from 'src/common/constants/shopifyScopes';
 import {
   IGetProductsResponse,
+  IShopifyInventoryUpdate,
   IShopifyProduct,
   IShopifyProductUpdate,
 } from 'src/common/types/product.types';
@@ -253,6 +254,12 @@ export class ShopifyService {
         variant: rest,
       });
 
+      await this.updateProductInventory({
+        variantId,
+        available: rest.inventory_quantity,
+        locationId: rest.locationId,
+      });
+
       return data;
     } catch (error) {
       console.error(error);
@@ -260,6 +267,23 @@ export class ShopifyService {
       //   'Failed to update product on Shopify',
       //   HttpStatus.BAD_REQUEST,
       // );
+    }
+  }
+
+  private async updateProductInventory({
+    variantId,
+    available,
+    locationId,
+  }: IShopifyInventoryUpdate): Promise<void> {
+    try {
+      await this.axiosInstance.post(`/inventory_levels/set.json`, {
+        location_id: locationId,
+        inventory_item_id: variantId,
+        available: available,
+      });
+      console.log('Inventory updated successfully');
+    } catch (error) {
+      console.error('Error updating inventory:', error);
     }
   }
 }
