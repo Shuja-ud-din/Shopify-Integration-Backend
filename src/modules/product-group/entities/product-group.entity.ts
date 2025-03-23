@@ -1,6 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
 import { IProductGroup } from 'src/common/types/product.types';
+import {
+  IShopifyStoreDoc,
+  ShopifyStore,
+} from 'src/modules/shopify/entities/shopifyStore.entity';
+import { IUserDoc, User } from 'src/modules/user/entities/user.entity';
 
 export type IProductGroupDoc = IProductGroup & Document;
 
@@ -20,6 +25,16 @@ export class ProductGroup implements IProductGroup {
     default: [],
   })
   products: mongoose.Types.ObjectId[];
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: ShopifyStore.name,
+    required: true,
+  })
+  store: mongoose.Types.ObjectId | IShopifyStoreDoc;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: User.name, required: true })
+  user: mongoose.Types.ObjectId | IUserDoc;
 
   @Prop({ default: new Date() })
   createdAt: Date;

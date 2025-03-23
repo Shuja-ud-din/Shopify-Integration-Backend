@@ -19,13 +19,14 @@ export class StoreGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const user = request.user;
-    const storeId = request.query.store as string;
+
+    const store = request.query.store as string;
 
     if (!user) {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    if (!storeId) {
+    if (!store) {
       throw new ForbiddenException('Missing store ID');
     }
 
@@ -34,7 +35,7 @@ export class StoreGuard implements CanActivate {
       throw new ForbiddenException('User not found');
     }
 
-    const storeExists = userExists.shopifyStores.includes(storeId);
+    const storeExists = userExists.shopifyStores.includes(store);
 
     if (!storeExists) {
       throw new ForbiddenException('You do not have access to this store');

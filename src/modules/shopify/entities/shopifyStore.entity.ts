@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 import { IShopifyStore } from 'src/common/types/user.types';
-import { IUserDoc } from 'src/modules/user/entities/user.entity';
+import { IUserDoc, User } from 'src/modules/user/entities/user.entity';
 
 @Schema()
 export class ShopifyStore implements IShopifyStore {
@@ -14,7 +14,7 @@ export class ShopifyStore implements IShopifyStore {
   @Prop({ required: true })
   url: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: User.name, required: true })
   userId: mongoose.Types.ObjectId | IUserDoc;
 }
 

@@ -84,9 +84,9 @@ export class ProductController {
   }
 
   @UseInterceptors(UpdateShopifyProductInterceptor)
-  @UseGuards(StoreGuard)
   @HttpCode(HttpStatus.OK)
   @Put('/shopify/:id')
+  @UseGuards(StoreGuard)
   async updateProductToShopify(
     @Param() params: GetProductDto,
     @Query('store') storeId: string,
@@ -95,9 +95,9 @@ export class ProductController {
   }
 
   @UseInterceptors(SyncProductInterceptor)
-  @UseGuards(StoreGuard)
   @HttpCode(HttpStatus.OK)
   @Post('/sync/:id')
+  @UseGuards(StoreGuard)
   async syncProduct(
     @Param() params: GetProductDto,
     @Query('store') storeId: string,
@@ -106,9 +106,9 @@ export class ProductController {
   }
 
   @UseInterceptors(SyncProductsInterceptor)
-  @UseGuards(StoreGuard)
   @HttpCode(HttpStatus.OK)
   @Post('/sync')
+  @UseGuards(StoreGuard)
   async syncProducts(@Query('store') storeId: string) {
     return this.productService.syncProducts(storeId);
   }

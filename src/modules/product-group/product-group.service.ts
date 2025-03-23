@@ -52,14 +52,22 @@ export class ProductGroupService {
     }
   }
 
-  async getProductGroups(): Promise<IProductGroupDoc[]> {
-    return this.productGroupModel.find().populate('products');
+  async getProductGroups(
+    storeId: string,
+    userId: string,
+  ): Promise<IProductGroupDoc[]> {
+    return this.productGroupModel
+      .find({ store: storeId, user: userId })
+      .populate('products');
   }
 
-  async getProductGroup(id: string): Promise<IProductGroupDoc> {
+  async getProductGroup(
+    storeId: string,
+    id: string,
+  ): Promise<IProductGroupDoc> {
     try {
       const productGroup = await this.productGroupModel
-        .findById(id)
+        .findOne({ _id: id, store: storeId })
         .populate('products');
 
       if (!productGroup) {
@@ -102,9 +110,11 @@ export class ProductGroupService {
   }
 
   async createProductGroup(
-    createProductGroupDto: CreateProductGroupDto,
+    userId: string,
+    store: string,
+    payload: CreateProductGroupDto,
   ): Promise<IProductGroupDoc> {
-    const { name, description, tags } = createProductGroupDto;
+    const { name, description, tags } = payload;
 
     const nameFound = await this.productGroupModel.findOne({ name });
     if (nameFound) {
@@ -128,6 +138,8 @@ export class ProductGroupService {
       description,
       tags,
       products: productIds,
+      store: store,
+      user: userId,
     });
 
     return productGroup.save();
@@ -169,8 +181,12 @@ export class ProductGroupService {
     return productGroup.save();
   }
 
-  async deleteProductGroup(id: string): Promise<boolean> {
-    const productGroup = await this.productGroupModel.findById(id);
+  async deleteProductGroup(storeId: string, id: string): Promise<boolean> {
+    const productGroup = await this.productGroupModel.findOne({
+      _id: id,
+      store: storeId,
+    });
+
     if (!productGroup) {
       throw new BadRequestException('Group not found');
     }

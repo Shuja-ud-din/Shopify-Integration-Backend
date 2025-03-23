@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { IProductDoc } from 'src/modules/product/entities/product.entity';
 
 import { ShopifyProductStatus } from '../enums/product.enum';
+import { IShopifyStore, IUser } from './user.types';
 
 interface IShopifyVariant {
   id: number;
@@ -90,6 +91,8 @@ export interface IProductGroup {
   tags: string[];
   products: IProductDoc[] | mongoose.Types.ObjectId[];
   isScraping: boolean;
+  store: mongoose.Types.ObjectId | IShopifyStore;
+  user: mongoose.Types.ObjectId | IUser;
 
   createdAt: Date;
   updatedAt: Date;
