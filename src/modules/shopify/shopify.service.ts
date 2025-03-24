@@ -277,4 +277,10 @@ export class ShopifyService {
       console.error('Error updating inventory:', error);
     }
   }
+
+  async getStores(userId: string): Promise<IShopifyStoreDoc[]> {
+    const stores = await this.shopifyStoreModel.find({ userId });
+
+    return stores;
+  }
 }

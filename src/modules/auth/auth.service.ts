@@ -27,7 +27,10 @@ export class AuthService {
     const payload = { email: user.email, id: user.id };
     const token = generateToken(payload);
 
-    return token;
+    return {
+      token,
+      hasStore: user.shopifyStores.length > 0,
+    };
   }
 
   private async validatePassword(password: string, userPassword: string) {
