@@ -45,6 +45,7 @@ export interface IProductGroup {
   isScraping: boolean;
   store: mongoose.Types.ObjectId | IShopifyStore;
   user: mongoose.Types.ObjectId | IUser;
+  formula: string;
 
   createdAt: Date;
   updatedAt: Date;

@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { evaluate } from 'mathjs';
 import { Model } from 'mongoose';
 import mongoose from 'mongoose';
 import { IProduct, IScapedProduct } from 'src/common/types/product.types';
@@ -210,11 +211,27 @@ export class ProductService {
   async updateScrappedProduct(
     storeId: string,
     product: IScapedProduct,
+    formula?: string,
   ): Promise<IProductDoc> {
     const productFound = await this.getProductById(storeId, product.id);
-    productFound.price = parseFloat(
-      (product.price * productFound.profitMargin * 10).toFixed(2),
-    );
+
+    if (formula) {
+      const scope = {
+        price: product.price,
+        profitMargin: productFound.profitMargin,
+      };
+
+      try {
+        productFound.price = parseFloat(evaluate(formula, scope).toFixed(2));
+      } catch (error) {
+        throw new Error(`Invalid formula: ${formula}`);
+      }
+    } else {
+      productFound.price = parseFloat(
+        (product.price * productFound.profitMargin * 10).toFixed(2),
+      );
+    }
+
     productFound.inventoryQuantity = product.stockQty;
     productFound.available = product.available;
     productFound.updatedAt = new Date();

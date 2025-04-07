@@ -36,6 +36,9 @@ export class ProductGroup implements IProductGroup {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: User.name, required: true })
   user: mongoose.Types.ObjectId | IUserDoc;
 
+  @Prop({ default: '' })
+  formula: string;
+
   @Prop({ default: new Date() })
   createdAt: Date;
 
