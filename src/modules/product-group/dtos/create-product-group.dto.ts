@@ -12,4 +12,8 @@ export class CreateProductGroupDto {
   @IsNotEmpty()
   @IsString({ each: true })
   tags: string[];
+
+  @IsString()
+  @MinLength(3)
+  formula: string;
 }

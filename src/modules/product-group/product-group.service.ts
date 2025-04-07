@@ -28,12 +28,14 @@ export class ProductGroupService {
   private async updateProductsData(
     storeId: string,
     products: IScapedProduct[],
+    formula?: string,
   ) {
     for (const product of products) {
       try {
         const updatedProduct = await this.productService.updateScrappedProduct(
           storeId,
           product,
+          formula,
         );
 
         if (!updatedProduct.shopifyUpdateBlocked) {
@@ -90,7 +92,11 @@ export class ProductGroupService {
       this.scraperService
         .scrapeProducts(productGroup.products as IProductDoc[])
         .then(async (products) => {
-          await this.updateProductsData(storeId, products);
+          await this.updateProductsData(
+            storeId,
+            products,
+            productGroup.formula,
+          );
           productGroup.isScraping = false;
           await productGroup.save();
         });
@@ -107,7 +113,7 @@ export class ProductGroupService {
     store: string,
     payload: CreateProductGroupDto,
   ): Promise<IProductGroupDoc> {
-    const { name, description, tags } = payload;
+    const { name, description, tags, formula } = payload;
 
     const nameFound = await this.productGroupModel.findOne({ name });
     if (nameFound) {
@@ -128,6 +134,7 @@ export class ProductGroupService {
 
     const productGroup = new this.productGroupModel({
       name,
+      formula,
       description,
       tags,
       products: productIds,
@@ -142,7 +149,7 @@ export class ProductGroupService {
     id: string,
     createProductGroupDto: CreateProductGroupDto,
   ): Promise<IProductGroupDoc> {
-    const { name, description, tags } = createProductGroupDto;
+    const { name, description, tags, formula } = createProductGroupDto;
 
     const productGroup = await this.productGroupModel.findById(id);
     if (!productGroup) {
@@ -170,6 +177,7 @@ export class ProductGroupService {
     productGroup.description = description;
     productGroup.tags = tags;
     productGroup.products = productIds as mongoose.Types.ObjectId[];
+    productGroup.formula = formula;
 
     return productGroup.save();
   }
