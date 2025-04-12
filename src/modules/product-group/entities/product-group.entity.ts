@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
+import { EndScheduleOn, RepeatUnit } from 'src/common/enums/schedule.enum';
 import { IProductGroup } from 'src/common/types/product.types';
 import {
   IShopifyStoreDoc,
@@ -39,14 +40,33 @@ export class ProductGroup implements IProductGroup {
   @Prop({ default: '' })
   formula: string;
 
+  @Prop({ default: false })
+  isScraping: boolean;
+
+  @Prop({ default: false })
+  isScheduled: boolean;
+
+  @Prop({ default: null, type: Object })
+  schedule: {
+    startDate: string;
+    startTime: string;
+    timezone: string;
+    repeat: {
+      every: number;
+      unit: RepeatUnit;
+    };
+    end: {
+      on: EndScheduleOn;
+      value: number;
+    };
+    runCount: number;
+  } | null;
+
   @Prop({ default: new Date() })
   createdAt: Date;
 
   @Prop({ default: new Date() })
   updatedAt: Date;
-
-  @Prop({ default: false })
-  isScraping: boolean;
 }
 
 export const ProductGroupSchema = SchemaFactory.createForClass(ProductGroup);
