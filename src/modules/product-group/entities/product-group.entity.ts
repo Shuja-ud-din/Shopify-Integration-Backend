@@ -46,18 +46,39 @@ export class ProductGroup implements IProductGroup {
   @Prop({ default: false })
   isScheduled: boolean;
 
-  @Prop({ default: null, type: Object })
+  @Prop({
+    type: {
+      startDate: { type: String, required: true },
+      startTime: { type: String, required: true },
+      timezone: { type: String, required: true },
+      repeat: {
+        every: { type: Number, min: 1 },
+        unit: { type: String, enum: Object.values(RepeatUnit) },
+      },
+      end: {
+        on: {
+          type: String,
+          enum: Object.values(EndScheduleOn),
+          required: true,
+        },
+        value: { type: Number, min: 1 },
+      },
+      runCount: { type: Number, default: 0 },
+    },
+    _id: false,
+    default: null,
+  })
   schedule: {
     startDate: string;
     startTime: string;
     timezone: string;
-    repeat: {
+    repeat?: {
       every: number;
       unit: RepeatUnit;
     };
     end: {
       on: EndScheduleOn;
-      value: number;
+      value?: number;
     };
     runCount: number;
   } | null;

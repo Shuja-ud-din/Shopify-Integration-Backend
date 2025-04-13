@@ -23,11 +23,6 @@ export class QueueService {
       { groupId },
       {
         delay,
-        repeat: {
-          every: schedule.repeat.every * 1000,
-          limit: schedule.end.value,
-          jobId: jobId,
-        },
       },
     );
 

@@ -4,10 +4,10 @@ export interface ISchedule {
   startDate: string;
   startTime: string;
   timezone: string;
-  repeat: IRepeatSchedule;
+  repeat?: IRepeatSchedule;
   end: {
     on: EndScheduleOn;
-    value: number;
+    value?: number;
   };
   runCount: number;
 }

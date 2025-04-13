@@ -19,3 +19,19 @@ export const getDelay: (
 
   return delay > 0 ? delay : 0;
 };
+
+export const isValidScheduleDate: (
+  date: string,
+  time: string,
+  timezone: string,
+) => boolean = (date, time, timezone) => {
+  const dateTimeInTZ = DateTime.fromFormat(
+    `${date} ${time}`,
+    'yyyy-MM-dd HH:mm',
+    { zone: timezone },
+  );
+
+  return (
+    dateTimeInTZ.isValid && dateTimeInTZ > DateTime.now().setZone(timezone)
+  );
+};
