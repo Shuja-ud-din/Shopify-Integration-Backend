@@ -13,6 +13,16 @@ import {
 } from 'class-validator';
 import { EndScheduleOn, RepeatUnit } from 'src/common/enums/schedule.enum';
 
+class EndScheduleDto {
+  @IsEnum(EndScheduleOn)
+  on: EndScheduleOn;
+
+  @ValidateIf((o) => o.endOn === EndScheduleOn.COUNT)
+  @IsInt()
+  @Min(1)
+  value?: number;
+}
+
 class RepeatDto {
   @IsInt()
   @Min(1)
@@ -40,13 +50,10 @@ export class ScheduleDto {
   @Type(() => RepeatDto)
   repeat?: RepeatDto;
 
-  @IsEnum(EndScheduleOn)
-  endOn: EndScheduleOn;
-
-  @ValidateIf((o) => o.endOn === EndScheduleOn.COUNT)
-  @IsInt()
-  @Min(1)
-  endValue?: number;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EndScheduleDto)
+  end?: EndScheduleDto;
 }
 
 export class CreateProductGroupDto {

@@ -149,10 +149,7 @@ export class ProductGroupService {
           startTime: schedule.startTime,
           timezone: schedule.timezone,
           repeat: schedule?.repeat,
-          end: {
-            on: schedule.endOn,
-            value: schedule.endValue,
-          },
+          end: schedule.end,
           runCount: 0,
         }
       : null;
@@ -218,10 +215,7 @@ export class ProductGroupService {
           startTime: schedule.startTime,
           timezone: schedule.timezone,
           repeat: schedule?.repeat,
-          end: {
-            on: schedule.endOn,
-            value: schedule.endValue,
-          },
+          end: schedule.end,
           runCount: 0,
         }
       : null;

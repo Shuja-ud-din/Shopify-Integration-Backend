@@ -1,4 +1,6 @@
 export enum RepeatUnit {
+  MINUTES = 'minutes',
+  HOURS = 'hours',
   DAYS = 'days',
   WEEKS = 'weeks',
   MONTHS = 'months',
