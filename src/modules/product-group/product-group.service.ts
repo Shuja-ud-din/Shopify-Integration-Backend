@@ -236,6 +236,25 @@ export class ProductGroupService {
     return savedProduct;
   }
 
+  async cancelProductGroupSchedule(
+    storeId: string,
+    id: string,
+  ): Promise<IProductGroupDoc> {
+    const productGroup = await this.productGroupModel.findOne({
+      _id: id,
+      store: storeId,
+    });
+
+    if (!productGroup) {
+      throw new BadRequestException('Group not found');
+    }
+
+    productGroup.isScheduled = false;
+    productGroup.schedule = null;
+
+    return productGroup.save();
+  }
+
   async deleteProductGroup(storeId: string, id: string): Promise<boolean> {
     const productGroup = await this.productGroupModel.findOne({
       _id: id,

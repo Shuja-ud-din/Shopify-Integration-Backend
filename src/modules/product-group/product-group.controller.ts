@@ -18,6 +18,7 @@ import { StoreGuard } from 'src/common/guards/store.guard';
 import { ITokenPayload } from 'src/common/utils/token';
 
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
+import { CancelGroupScheduleInterceptor } from './interceptors/cancelGroupSchedule.interceptor';
 import { CreateProductGroupInterceptor } from './interceptors/createProductGroup.interceptor';
 import { DeleteProductGroupInterceptor } from './interceptors/deleteProductGroup.interceptor';
 import { GetProductGroupInterceptor } from './interceptors/getProductGroup.interceptor';
@@ -91,6 +92,17 @@ export class ProductGroupController {
       id,
       updateProductGroupDto,
     );
+  }
+
+  @UseInterceptors(CancelGroupScheduleInterceptor)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/:id/schedule/cancel')
+  @UseGuards(StoreGuard)
+  async cancelProductGroupSchedule(
+    @Param('id') id: string,
+    @Query('store') storeId: string,
+  ) {
+    return this.productGroupService.cancelProductGroupSchedule(storeId, id);
   }
 
   @UseInterceptors(DeleteProductGroupInterceptor)

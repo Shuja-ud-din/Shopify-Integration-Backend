@@ -59,7 +59,6 @@ export class ProductGroup implements IProductGroup {
         on: {
           type: String,
           enum: Object.values(EndScheduleOn),
-          required: true,
         },
         value: { type: Number, min: 1 },
       },
