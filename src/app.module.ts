@@ -13,6 +13,7 @@ import scraperConfig from './common/config/scraper.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductGroupModule } from './modules/product-group/product-group.module';
+import { QueueModule } from './modules/queue/queue.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { ShopifyModule } from './modules/shopify/shopify.module';
@@ -61,6 +62,7 @@ import { EnvValidationSchema } from './validations/env.validation';
     SeedModule,
     ProductGroupModule,
     ShopifyModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

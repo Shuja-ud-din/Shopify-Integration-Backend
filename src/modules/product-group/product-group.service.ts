@@ -6,6 +6,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { IScapedProduct } from 'src/common/types/product.types';
+import { ISchedule } from 'src/common/types/schedule.types';
+import { isValidScheduleDate } from 'src/common/utils/dateTime';
 
 import { IProductDoc } from '../product/entities/product.entity';
 import { ProductService } from '../product/product.service';
@@ -113,7 +115,7 @@ export class ProductGroupService {
     store: string,
     payload: CreateProductGroupDto,
   ): Promise<IProductGroupDoc> {
-    const { name, description, tags, formula } = payload;
+    const { name, description, tags, formula, schedule } = payload;
 
     const nameFound = await this.productGroupModel.findOne({ name });
     if (nameFound) {
@@ -132,6 +134,26 @@ export class ProductGroupService {
     const products = await this.productService.getProductsByTags(tags);
     const productIds = products.map((product) => product._id);
 
+    if (schedule) {
+      const { startDate, startTime, timezone } = schedule;
+      const isValid = isValidScheduleDate(startDate, startTime, timezone);
+
+      if (!isValid) {
+        throw new BadRequestException('Invalid schedule date or time');
+      }
+    }
+
+    const scheduleObject: ISchedule = schedule
+      ? {
+          startDate: schedule.startDate,
+          startTime: schedule.startTime,
+          timezone: schedule.timezone,
+          repeat: schedule?.repeat,
+          end: schedule.end,
+          runCount: 0,
+        }
+      : null;
+
     const productGroup = new this.productGroupModel({
       name,
       formula,
@@ -140,7 +162,11 @@ export class ProductGroupService {
       products: productIds,
       store: store,
       user: userId,
+      isScheduled: !!schedule,
+      schedule: scheduleObject,
     });
+
+    // TODO: add queue job to schedule scraping
 
     return productGroup.save();
   }
@@ -149,7 +175,8 @@ export class ProductGroupService {
     id: string,
     createProductGroupDto: CreateProductGroupDto,
   ): Promise<IProductGroupDoc> {
-    const { name, description, tags, formula } = createProductGroupDto;
+    const { name, description, tags, formula, schedule } =
+      createProductGroupDto;
 
     const productGroup = await this.productGroupModel.findById(id);
     if (!productGroup) {
@@ -170,14 +197,60 @@ export class ProductGroupService {
       throw new BadRequestException('Some tags do not exist');
     }
 
+    if (schedule) {
+      const { startDate, startTime, timezone } = schedule;
+      const isValid = isValidScheduleDate(startDate, startTime, timezone);
+
+      if (!isValid) {
+        throw new BadRequestException('Invalid schedule date or time');
+      }
+    }
+
     const products = await this.productService.getProductsByTags(tags);
     const productIds = products.map((product) => product._id);
+
+    const scheduleObject: ISchedule = schedule
+      ? {
+          startDate: schedule.startDate,
+          startTime: schedule.startTime,
+          timezone: schedule.timezone,
+          repeat: schedule?.repeat,
+          end: schedule.end,
+          runCount: 0,
+        }
+      : null;
 
     productGroup.name = name;
     productGroup.description = description;
     productGroup.tags = tags;
     productGroup.products = productIds as mongoose.Types.ObjectId[];
     productGroup.formula = formula;
+    productGroup.isScheduled = !!schedule;
+    productGroup.schedule = scheduleObject;
+    productGroup.isScraping = false;
+
+    const savedProduct = await productGroup.save();
+
+    // TODO: add queue job to schedule scraping
+
+    return savedProduct;
+  }
+
+  async cancelProductGroupSchedule(
+    storeId: string,
+    id: string,
+  ): Promise<IProductGroupDoc> {
+    const productGroup = await this.productGroupModel.findOne({
+      _id: id,
+      store: storeId,
+    });
+
+    if (!productGroup) {
+      throw new BadRequestException('Group not found');
+    }
+
+    productGroup.isScheduled = false;
+    productGroup.schedule = null;
 
     return productGroup.save();
   }

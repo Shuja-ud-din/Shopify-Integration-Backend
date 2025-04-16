@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { IProductDoc } from 'src/modules/product/entities/product.entity';
 
 import { ShopifyProductStatus } from '../enums/product.enum';
+import { ISchedule } from './schedule.types';
 import { IShopifyProduct } from './shopify.types';
 import { IShopifyStore, IUser } from './user.types';
 
@@ -46,6 +47,9 @@ export interface IProductGroup {
   store: mongoose.Types.ObjectId | IShopifyStore;
   user: mongoose.Types.ObjectId | IUser;
   formula: string;
+
+  schedule: ISchedule | null;
+  isScheduled: boolean;
 
   createdAt: Date;
   updatedAt: Date;

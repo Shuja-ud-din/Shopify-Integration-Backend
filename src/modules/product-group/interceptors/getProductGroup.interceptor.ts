@@ -28,6 +28,8 @@ export class GetProductGroupInterceptor implements NestInterceptor {
             formula: productGroup.formula,
             tags: productGroup.tags,
             isScraping: productGroup.isScraping,
+            isScheduled: productGroup.isScheduled,
+            schedule: productGroup.schedule,
             products: productGroup.products.map((product) => ({
               id: product._id,
               title: product.title,
