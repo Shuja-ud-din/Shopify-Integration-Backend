@@ -70,13 +70,13 @@ export class ProductGroupController {
   @UseGuards(StoreGuard)
   async createProductGroup(
     @User() user: ITokenPayload,
-    @Body() createProductGroupDto: CreateProductGroupDto,
+    @Body() payload: CreateProductGroupDto,
     @Query('store') storeId: string,
   ) {
     return this.productGroupService.createProductGroup(
       user.id,
       storeId,
-      createProductGroupDto,
+      payload,
     );
   }
 
@@ -85,13 +85,10 @@ export class ProductGroupController {
   @Put('/:id')
   @UseGuards(StoreGuard)
   async updateProductGroup(
-    @Body() updateProductGroupDto: CreateProductGroupDto,
+    @Body() payload: CreateProductGroupDto,
     @Param('id') id: string,
   ) {
-    return this.productGroupService.updateProductGroup(
-      id,
-      updateProductGroupDto,
-    );
+    return this.productGroupService.updateProductGroup(id, payload);
   }
 
   @UseInterceptors(CancelGroupScheduleInterceptor)

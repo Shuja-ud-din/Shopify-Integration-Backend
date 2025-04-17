@@ -73,3 +73,12 @@ export interface IScapedProduct {
   available: boolean;
   imageUrl: string;
 }
+
+export interface IFormula {
+  name: string;
+  description: string;
+  formula: string;
+  store: mongoose.Types.ObjectId | IShopifyStore;
+  createdAt: Date;
+  updatedAt: Date;
+}

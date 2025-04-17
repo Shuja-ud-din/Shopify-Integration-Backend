@@ -11,6 +11,7 @@ import jwtConfig from './common/config/jwt.config';
 import redisConfig from './common/config/redis.config';
 import scraperConfig from './common/config/scraper.config';
 import { AuthModule } from './modules/auth/auth.module';
+import { FormulaModule } from './modules/formula/formula.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductGroupModule } from './modules/product-group/product-group.module';
 import { QueueModule } from './modules/queue/queue.module';
@@ -63,6 +64,7 @@ import { EnvValidationSchema } from './validations/env.validation';
     ProductGroupModule,
     ShopifyModule,
     QueueModule,
+    FormulaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
