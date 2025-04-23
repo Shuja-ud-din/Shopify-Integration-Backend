@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEnum,
   IsInt,
+  IsMongoId,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -69,8 +70,7 @@ export class CreateProductGroupDto {
   @IsString({ each: true })
   tags: string[];
 
-  @IsString()
-  @MinLength(3)
+  @IsMongoId()
   formula: string;
 
   @IsOptional()

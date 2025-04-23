@@ -129,11 +129,22 @@ export class ShopifyService {
         );
       }
 
+      const url = payload.url.replace(/\/$/, '');
+      const existingStore = await this.shopifyStoreModel.find({
+        url,
+      });
+      if (existingStore.length > 0) {
+        throw new HttpException(
+          'Store already integrated',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       const store = new this.shopifyStoreModel({
         ...storeInfo,
         ...payload,
         userId,
-        url: payload.url.replace(/\/$/, ''),
+        url,
       });
 
       await store.save();

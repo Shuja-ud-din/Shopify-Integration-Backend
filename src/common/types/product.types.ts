@@ -46,7 +46,7 @@ export interface IProductGroup {
   isScraping: boolean;
   store: mongoose.Types.ObjectId | IShopifyStore;
   user: mongoose.Types.ObjectId | IUser;
-  formula: string;
+  formula: IFormula | mongoose.Types.ObjectId;
 
   schedule: ISchedule | null;
   isScheduled: boolean;

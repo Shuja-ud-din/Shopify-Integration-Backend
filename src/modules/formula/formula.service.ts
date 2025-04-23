@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -29,6 +33,14 @@ export class FormulaService {
     store: string,
     payload: CreateFormulaDto,
   ): Promise<IFormulaDoc> {
+    const existingFormula = await this.formulaModel.findOne({
+      name: payload.name,
+      store,
+    });
+    if (existingFormula) {
+      throw new BadRequestException('Formula with this name already exists');
+    }
+
     const newFormula = new this.formulaModel({
       ...payload,
       store,
@@ -45,6 +57,14 @@ export class FormulaService {
     const formula = await this.formulaModel.findOne({ _id: id, store });
     if (!formula) {
       throw new NotFoundException('Formula not found');
+    }
+
+    const existingFormula = await this.formulaModel.findOne({
+      name: payload.name,
+      store,
+    });
+    if (existingFormula) {
+      throw new BadRequestException('Formula with this name already exists');
     }
 
     formula.name = payload.name;

@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { IScapedProduct } from 'src/common/types/product.types';
+import { IFormula, IScapedProduct } from 'src/common/types/product.types';
 import { ISchedule } from 'src/common/types/schedule.types';
 import { isValidScheduleDate } from 'src/common/utils/dateTime';
 
+import { FormulaService } from '../formula/formula.service';
 import { IProductDoc } from '../product/entities/product.entity';
 import { ProductService } from '../product/product.service';
 import { ScraperService } from '../scraper/scraper.service';
@@ -25,6 +26,7 @@ export class ProductGroupService {
     private productGroupModel: Model<IProductGroupDoc>,
     private productService: ProductService,
     private scraperService: ScraperService,
+    private formulaService: FormulaService,
   ) {}
 
   private async updateProductsData(
@@ -82,7 +84,8 @@ export class ProductGroupService {
     try {
       const productGroup = await this.productGroupModel
         .findById(id)
-        .populate('products');
+        .populate('products')
+        .populate('formula');
 
       if (!productGroup) {
         throw new NotFoundException('Product Group not found');
@@ -97,7 +100,7 @@ export class ProductGroupService {
           await this.updateProductsData(
             storeId,
             products,
-            productGroup.formula,
+            (productGroup.formula as IFormula).formula,
           );
           productGroup.isScraping = false;
           await productGroup.save();
@@ -117,7 +120,7 @@ export class ProductGroupService {
   ): Promise<IProductGroupDoc> {
     const { name, description, tags, formula, schedule } = payload;
 
-    const nameFound = await this.productGroupModel.findOne({ name });
+    const nameFound = await this.productGroupModel.findOne({ name, store });
     if (nameFound) {
       throw new BadRequestException('Group name already exists');
     }
@@ -183,7 +186,10 @@ export class ProductGroupService {
       throw new BadRequestException('Group not found');
     }
 
-    const nameFound = await this.productGroupModel.findOne({ name });
+    const nameFound = await this.productGroupModel.findOne({
+      name,
+      store: productGroup.store,
+    });
     if (nameFound && nameFound._id.toString() !== id) {
       throw new BadRequestException('Group name already exists');
     }
@@ -195,6 +201,14 @@ export class ProductGroupService {
     const tagsFound = await this.productService.findTagsByNames(tags);
     if (tagsFound.length !== tags.length) {
       throw new BadRequestException('Some tags do not exist');
+    }
+
+    const formulaFound = await this.formulaService.getFormulaById(
+      productGroup.store.toString(),
+      formula,
+    );
+    if (!formulaFound) {
+      throw new BadRequestException('Formula not found');
     }
 
     if (schedule) {
@@ -224,7 +238,7 @@ export class ProductGroupService {
     productGroup.description = description;
     productGroup.tags = tags;
     productGroup.products = productIds as mongoose.Types.ObjectId[];
-    productGroup.formula = formula;
+    productGroup.formula = formulaFound._id as mongoose.Types.ObjectId;
     productGroup.isScheduled = !!schedule;
     productGroup.schedule = scheduleObject;
     productGroup.isScraping = false;

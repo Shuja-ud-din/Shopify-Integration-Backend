@@ -14,6 +14,7 @@ import { FormulaService } from './formula.service';
     MongooseModule.forFeature([{ name: Formula.name, schema: FormulaSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
+  exports: [FormulaService],
 })
 export class FormulaModule {
   configure(consumer: MiddlewareConsumer) {
