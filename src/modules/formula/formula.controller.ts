@@ -22,7 +22,7 @@ import { GetFormulaInterceptor } from './interceptors/getFormula.interceptor';
 import { GetFormulasInterceptor } from './interceptors/getFormulas.interceptor';
 import { UpdateFormulaInterceptor } from './interceptors/updateFormulas.interceptor';
 
-@Controller('formula')
+@Controller('formulas')
 export class FormulaController {
   constructor(private readonly formulaService: FormulaService) {}
 

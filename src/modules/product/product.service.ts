@@ -217,8 +217,8 @@ export class ProductService {
 
     if (formula) {
       const scope = {
-        price: product.price,
-        profitMargin: productFound.profitMargin,
+        PRICE: product.price,
+        PROFIT_MARGIN: productFound.profitMargin,
       };
 
       try {

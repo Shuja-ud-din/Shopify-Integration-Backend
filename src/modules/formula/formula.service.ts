@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -17,7 +17,12 @@ export class FormulaService {
   }
 
   async getFormulaById(store: string, id: string): Promise<IFormulaDoc> {
-    return this.formulaModel.findOne({ _id: id, store });
+    const formula = await this.formulaModel.findOne({ _id: id, store });
+    if (!formula) {
+      throw new NotFoundException('Formula not found');
+    }
+
+    return formula;
   }
 
   async createFormula(
@@ -39,7 +44,7 @@ export class FormulaService {
   ): Promise<IFormulaDoc> {
     const formula = await this.formulaModel.findOne({ _id: id, store });
     if (!formula) {
-      throw new Error('Formula not found');
+      throw new NotFoundException('Formula not found');
     }
 
     formula.name = payload.name;
@@ -52,7 +57,7 @@ export class FormulaService {
   async deleteFormula(store: string, id: string): Promise<boolean> {
     const formula = await this.formulaModel.findOne({ _id: id, store });
     if (!formula) {
-      throw new Error('Formula not found');
+      throw new NotFoundException('Formula not found');
     }
 
     await formula.deleteOne();
