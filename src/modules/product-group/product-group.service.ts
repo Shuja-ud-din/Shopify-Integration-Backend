@@ -7,11 +7,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { IFormula, IScapedProduct } from 'src/common/types/product.types';
 import { ISchedule } from 'src/common/types/schedule.types';
-import { isValidScheduleDate } from 'src/common/utils/dateTime';
+import { isScheduleSame, isValidScheduleDate } from 'src/common/utils/dateTime';
 
 import { FormulaService } from '../formula/formula.service';
 import { IProductDoc } from '../product/entities/product.entity';
 import { ProductService } from '../product/product.service';
+import { QueueService } from '../queue/queue.service';
 import { ScraperService } from '../scraper/scraper.service';
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
 import {
@@ -27,6 +28,7 @@ export class ProductGroupService {
     private productService: ProductService,
     private scraperService: ScraperService,
     private formulaService: FormulaService,
+    private queueService: QueueService,
   ) {}
 
   private async updateProductsData(
@@ -169,7 +171,13 @@ export class ProductGroupService {
       schedule: scheduleObject,
     });
 
-    // TODO: add queue job to schedule scraping
+    if (scheduleObject) {
+      this.queueService.scheduleJob(
+        scheduleObject,
+        productGroup._id.toString(),
+        productGroup.store.toString(),
+      );
+    }
 
     return productGroup.save();
   }
@@ -239,15 +247,33 @@ export class ProductGroupService {
     productGroup.tags = tags;
     productGroup.products = productIds as mongoose.Types.ObjectId[];
     productGroup.formula = formulaFound._id as mongoose.Types.ObjectId;
-    productGroup.isScheduled = !!schedule;
-    productGroup.schedule = scheduleObject;
     productGroup.isScraping = false;
+
+    if (!isScheduleSame(scheduleObject, productGroup.schedule)) {
+      productGroup.isScheduled = !!schedule;
+      productGroup.schedule = scheduleObject;
+
+      await this.queueService.cancelAllJobs(productGroup._id.toString());
+      console.log('Cancelled all jobs for group', productGroup._id.toString());
+
+      this.queueService.scheduleJob(
+        scheduleObject,
+        productGroup._id.toString(),
+        productGroup.store.toString(),
+      );
+    }
 
     const savedProduct = await productGroup.save();
 
-    // TODO: add queue job to schedule scraping
-
     return savedProduct;
+  }
+
+  async scheduleProductGroup(
+    storeId: string,
+    id: string,
+    schedule: ISchedule,
+  ): Promise<void> {
+    await this.queueService.scheduleJob(schedule, id, storeId);
   }
 
   async cancelProductGroupSchedule(

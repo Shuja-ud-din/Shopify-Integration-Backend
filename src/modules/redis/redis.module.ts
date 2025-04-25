@@ -12,6 +12,7 @@ const RedisProvider = {
     const { url } = configService.get('redis');
 
     const client = new Redis(url, {
+      maxRetriesPerRequest: null,
       retryStrategy: (times) => {
         if (times >= 3) {
           logger.error(

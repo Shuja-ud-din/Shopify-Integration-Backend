@@ -9,7 +9,11 @@ import { getDelay } from 'src/common/utils/dateTime';
 export class QueueService {
   constructor(@InjectQueue(QUEUE_NAME) private messageQueue: Queue) {}
 
-  async scheduleJob(schedule: ISchedule, groupId: string): Promise<string> {
+  async scheduleJob(
+    schedule: ISchedule,
+    groupId: string,
+    storeId: string,
+  ): Promise<string> {
     const jobId = `job-${groupId}-${schedule.runCount}`;
 
     const delay = getDelay(
@@ -20,7 +24,7 @@ export class QueueService {
 
     await this.messageQueue.add(
       jobId,
-      { groupId },
+      { groupId, storeId },
       {
         delay,
       },
