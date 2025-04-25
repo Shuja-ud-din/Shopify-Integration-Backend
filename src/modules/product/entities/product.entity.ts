@@ -42,6 +42,12 @@ export class Product implements IProduct {
   @Prop({ required: true })
   price: number;
 
+  @Prop({ default: 0 })
+  compareAtPrice: number;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Formula', default: null })
+  comparePriceFormula: Types.ObjectId | null;
+
   @Prop({ required: true, default: 0 })
   inventoryQuantity: number;
 

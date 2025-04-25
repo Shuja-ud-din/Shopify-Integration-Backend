@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 
+import { FormulaModule } from '../formula/formula.module';
 import { RedisModule } from '../redis/redis.module';
 import { ScraperModule } from '../scraper/scraper.module';
 import { ShopifyModule } from '../shopify/shopify.module';
@@ -20,6 +21,7 @@ import { ProductService } from './product.service';
     ShopifyModule,
     RedisModule,
     ScraperModule,
+    FormulaModule,
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     MongooseModule.forFeature([{ name: Tag.name, schema: TagSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),

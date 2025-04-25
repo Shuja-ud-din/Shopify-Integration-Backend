@@ -18,6 +18,8 @@ export interface IProduct {
   image: string;
   sku: string;
   price: number;
+  compareAtPrice: number;
+  comparePriceFormula?: mongoose.Types.ObjectId | IFormula | null;
   inventoryQuantity: number;
   profitMargin?: number;
   scrapperUrls: string[];
