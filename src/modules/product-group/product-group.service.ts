@@ -69,7 +69,8 @@ export class ProductGroupService {
     try {
       const productGroup = await this.productGroupModel
         .findOne({ _id: id, store: storeId })
-        .populate('products');
+        .populate('products')
+        .populate('formula');
 
       if (!productGroup) {
         throw new NotFoundException('Product Group not found');

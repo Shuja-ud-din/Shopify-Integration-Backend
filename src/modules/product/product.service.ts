@@ -104,7 +104,8 @@ export class ProductService {
       existingProduct.comparePriceFormula = formula.id;
     }
 
-    if (compareAtPrice) {
+    if (compareAtPrice && existingProduct.compareAtPrice != compareAtPrice) {
+      existingProduct.hasChanges = true;
       existingProduct.compareAtPrice = compareAtPrice;
     }
 

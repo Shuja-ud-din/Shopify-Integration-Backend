@@ -26,6 +26,7 @@ export class GetProductsInterceptor implements NestInterceptor {
               id: product._id,
               title: product.title,
               price: product.price,
+              compareAtPrice: product.compareAtPrice,
               tags: product.tags,
               sku: product.sku,
               image: product.image,

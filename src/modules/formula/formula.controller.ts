@@ -6,8 +6,8 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  Patch,
   Post,
+  Put,
   Query,
   UseGuards,
   UseInterceptors,
@@ -58,7 +58,7 @@ export class FormulaController {
 
   @UseInterceptors(UpdateFormulaInterceptor)
   @HttpCode(HttpStatus.OK)
-  @Patch('/:id')
+  @Put('/:id')
   @UseGuards(StoreGuard)
   async updateFormula(
     @Query('store') storeId: string,

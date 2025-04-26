@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongooseSchema, Types } from 'mongoose';
+import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 import { ShopifyProductStatus } from 'src/common/enums/product.enum';
 import { IProduct } from 'src/common/types/product.types';
 import {
@@ -89,5 +89,5 @@ export class Product implements IProduct {
   updatedAt: Date;
 }
 
-export type IProductDoc = HydratedDocument<Product>;
+export type IProductDoc = IProduct & Document;
 export const ProductSchema = SchemaFactory.createForClass(Product);

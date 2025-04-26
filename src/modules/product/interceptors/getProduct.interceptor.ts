@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { IFormulaDoc } from 'src/modules/formula/entities/formula.entity';
 
 import { IProductDoc } from '../entities/product.entity';
 
@@ -18,6 +19,7 @@ export class GetProductInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((product: IProductDoc) => {
+        const comparePriceFormula = product?.comparePriceFormula as IFormulaDoc;
         return {
           statusCode,
           message: 'Product Fetched successfully',
@@ -25,6 +27,15 @@ export class GetProductInterceptor implements NestInterceptor {
             id: product._id,
             title: product.title,
             price: product.price,
+            compareAtPrice: product.compareAtPrice,
+            comparePriceFormula: comparePriceFormula
+              ? {
+                  id: comparePriceFormula.id,
+                  name: comparePriceFormula.name,
+                  description: comparePriceFormula.description,
+                  formula: comparePriceFormula.formula,
+                }
+              : null,
             tags: product.tags,
             sku: product.sku,
             bodyHtml: product.bodyHtml,
