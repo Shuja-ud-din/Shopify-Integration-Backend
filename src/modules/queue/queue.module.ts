@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { QUEUE_NAME } from 'src/common/constants/constants';
 
+import { ProcessorModule } from './processor/processor.module';
 import { QueueService } from './queue.service';
 
 @Module({
@@ -20,6 +21,7 @@ import { QueueService } from './queue.service';
     BullModule.registerQueue({
       name: QUEUE_NAME,
     }),
+    ProcessorModule,
   ],
   providers: [QueueService],
   exports: [QueueService],

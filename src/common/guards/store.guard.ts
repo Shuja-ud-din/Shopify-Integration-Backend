@@ -30,6 +30,10 @@ export class StoreGuard implements CanActivate {
       throw new ForbiddenException('Missing store ID');
     }
 
+    if (!store.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new ForbiddenException('Invalid store ID');
+    }
+
     const userExists = await this.userModel.findById(user.id);
     if (!userExists) {
       throw new ForbiddenException('User not found');

@@ -10,9 +10,10 @@ import { Model } from 'mongoose';
 import mongoose from 'mongoose';
 import { IProduct, IScapedProduct } from 'src/common/types/product.types';
 
+import { FormulaService } from '../formula/formula.service';
 import { ScraperService } from '../scraper/scraper.service';
 import { ShopifyService } from '../shopify/shopify.service';
-import { UpdateProductDto } from './dtos/getProduct.dto';
+import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { Product } from './entities/product.entity';
 import { IProductDoc } from './entities/product.entity';
 import { ITagDoc, Tag } from './entities/tag.entity';
@@ -22,6 +23,7 @@ export class ProductService {
   constructor(
     private readonly shopifyService: ShopifyService,
     private readonly scraperService: ScraperService,
+    private readonly formulaService: FormulaService,
     @InjectModel(Product.name) private productModel: Model<IProductDoc>,
     @InjectModel(Tag.name) private tagModel: Model<ITagDoc>,
   ) {}
@@ -40,6 +42,7 @@ export class ProductService {
       const product = await this.productModel
         .findOne({ _id: id, store: storeId })
         .populate('tags')
+        .populate('comparePriceFormula')
         .exec();
 
       return product;
@@ -66,7 +69,13 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    const { urls, profitMargin, fallbackInventoryQuantity } = payload;
+    const {
+      urls,
+      profitMargin,
+      fallbackInventoryQuantity,
+      comparePriceFormula,
+      compareAtPrice,
+    } = payload;
 
     if (urls && this.containesDuplicateUrls(urls)) {
       throw new NotAcceptableException('Duplicate urls are not allowed');
@@ -82,6 +91,22 @@ export class ProductService {
 
     if (fallbackInventoryQuantity) {
       existingProduct.fallbackInventoryQuantity = fallbackInventoryQuantity;
+    }
+
+    if (comparePriceFormula) {
+      const formula = await this.formulaService.getFormulaById(
+        storeId,
+        comparePriceFormula,
+      );
+      if (!formula) {
+        throw new NotFoundException('Formula not found');
+      }
+      existingProduct.comparePriceFormula = formula.id;
+    }
+
+    if (compareAtPrice && existingProduct.compareAtPrice != compareAtPrice) {
+      existingProduct.hasChanges = true;
+      existingProduct.compareAtPrice = compareAtPrice;
     }
 
     existingProduct.updatedAt = new Date();
@@ -129,6 +154,7 @@ export class ProductService {
         ?.src || shopifyProduct.image?.src;
     product.sku = variant.sku;
     product.price = Number(variant.price);
+    product.compareAtPrice = Number(variant.compare_at_price);
     product.inventoryQuantity = variant.inventory_quantity;
     product.updatedAt = new Date();
     product.hasChanges = false;
@@ -164,6 +190,7 @@ export class ProductService {
               ?.src || product.image?.src,
           sku: variant.sku,
           price: Number(variant.price),
+          compareAtPrice: Number(variant.compare_at_price),
           locationId: locations[0].id,
           store: new mongoose.Types.ObjectId(storeId),
           inventoryItemId: variant.inventory_item_id,
@@ -217,8 +244,8 @@ export class ProductService {
 
     if (formula) {
       const scope = {
-        price: product.price,
-        profitMargin: productFound.profitMargin,
+        PRICE: product.price,
+        PROFIT_MARGIN: productFound.profitMargin,
       };
 
       try {
@@ -229,6 +256,32 @@ export class ProductService {
     } else {
       productFound.price = parseFloat(
         (product.price * productFound.profitMargin * 10).toFixed(2),
+      );
+    }
+
+    if (productFound.comparePriceFormula) {
+      const scope = {
+        PRICE: product.price,
+        PROFIT_MARGIN: productFound.profitMargin,
+      };
+      try {
+        const formulaObj = productFound.comparePriceFormula;
+
+        if (
+          formulaObj &&
+          typeof formulaObj !== 'string' &&
+          'formula' in formulaObj
+        ) {
+          productFound.compareAtPrice = parseFloat(
+            evaluate(formulaObj.formula as string, scope).toFixed(2),
+          );
+        }
+      } catch (error) {
+        throw new Error(`Invalid formula: ${productFound.comparePriceFormula}`);
+      }
+    } else {
+      productFound.compareAtPrice = parseFloat(
+        (productFound.price * 0.9).toFixed(2),
       );
     }
 
@@ -289,6 +342,7 @@ export class ProductService {
           : product.fallbackInventoryQuantity,
       locationId: product.locationId,
       inventoryItemId: product.inventoryItemId,
+      compare_at_price: product.compareAtPrice,
     });
 
     product.hasChanges = false;

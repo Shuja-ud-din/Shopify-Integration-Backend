@@ -18,6 +18,8 @@ export interface IProduct {
   image: string;
   sku: string;
   price: number;
+  compareAtPrice: number;
+  comparePriceFormula?: IFormula | mongoose.Types.ObjectId | null;
   inventoryQuantity: number;
   profitMargin?: number;
   scrapperUrls: string[];
@@ -46,7 +48,7 @@ export interface IProductGroup {
   isScraping: boolean;
   store: mongoose.Types.ObjectId | IShopifyStore;
   user: mongoose.Types.ObjectId | IUser;
-  formula: string;
+  formula: IFormula | mongoose.Types.ObjectId;
 
   schedule: ISchedule | null;
   isScheduled: boolean;
@@ -72,4 +74,13 @@ export interface IScapedProduct {
   stockQty: number;
   available: boolean;
   imageUrl: string;
+}
+
+export interface IFormula {
+  name: string;
+  description: string;
+  formula: string;
+  store: mongoose.Types.ObjectId | IShopifyStore;
+  createdAt: Date;
+  updatedAt: Date;
 }

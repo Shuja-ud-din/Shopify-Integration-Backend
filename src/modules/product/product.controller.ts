@@ -14,7 +14,8 @@ import {
 } from '@nestjs/common';
 import { StoreGuard } from 'src/common/guards/store.guard';
 
-import { GetProductDto, UpdateProductDto } from './dtos/getProduct.dto';
+import { GetProductDto } from './dtos/getProduct.dto';
+import { UpdateProductDto } from './dtos/updateProduct.dto';
 import { BlockProductUpdateInterceptor } from './interceptors/blockProductUpdate.interceptor';
 import { GetProductInterceptor } from './interceptors/getProduct.interceptor';
 import { GetProductsInterceptor } from './interceptors/getProducts.interceptor';

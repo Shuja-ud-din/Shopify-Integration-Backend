@@ -5,12 +5,14 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { IScapedProduct } from 'src/common/types/product.types';
+import { IFormula, IScapedProduct } from 'src/common/types/product.types';
 import { ISchedule } from 'src/common/types/schedule.types';
-import { isValidScheduleDate } from 'src/common/utils/dateTime';
+import { isScheduleSame, isValidScheduleDate } from 'src/common/utils/dateTime';
 
+import { FormulaService } from '../formula/formula.service';
 import { IProductDoc } from '../product/entities/product.entity';
 import { ProductService } from '../product/product.service';
+import { QueueService } from '../queue/queue.service';
 import { ScraperService } from '../scraper/scraper.service';
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
 import {
@@ -25,6 +27,8 @@ export class ProductGroupService {
     private productGroupModel: Model<IProductGroupDoc>,
     private productService: ProductService,
     private scraperService: ScraperService,
+    private formulaService: FormulaService,
+    private queueService: QueueService,
   ) {}
 
   private async updateProductsData(
@@ -65,7 +69,8 @@ export class ProductGroupService {
     try {
       const productGroup = await this.productGroupModel
         .findOne({ _id: id, store: storeId })
-        .populate('products');
+        .populate('products')
+        .populate('formula');
 
       if (!productGroup) {
         throw new NotFoundException('Product Group not found');
@@ -82,7 +87,8 @@ export class ProductGroupService {
     try {
       const productGroup = await this.productGroupModel
         .findById(id)
-        .populate('products');
+        .populate('products')
+        .populate('formula');
 
       if (!productGroup) {
         throw new NotFoundException('Product Group not found');
@@ -97,7 +103,7 @@ export class ProductGroupService {
           await this.updateProductsData(
             storeId,
             products,
-            productGroup.formula,
+            (productGroup.formula as IFormula).formula,
           );
           productGroup.isScraping = false;
           await productGroup.save();
@@ -117,7 +123,7 @@ export class ProductGroupService {
   ): Promise<IProductGroupDoc> {
     const { name, description, tags, formula, schedule } = payload;
 
-    const nameFound = await this.productGroupModel.findOne({ name });
+    const nameFound = await this.productGroupModel.findOne({ name, store });
     if (nameFound) {
       throw new BadRequestException('Group name already exists');
     }
@@ -166,7 +172,13 @@ export class ProductGroupService {
       schedule: scheduleObject,
     });
 
-    // TODO: add queue job to schedule scraping
+    if (scheduleObject) {
+      this.queueService.scheduleJob(
+        scheduleObject,
+        productGroup._id.toString(),
+        productGroup.store.toString(),
+      );
+    }
 
     return productGroup.save();
   }
@@ -183,7 +195,10 @@ export class ProductGroupService {
       throw new BadRequestException('Group not found');
     }
 
-    const nameFound = await this.productGroupModel.findOne({ name });
+    const nameFound = await this.productGroupModel.findOne({
+      name,
+      store: productGroup.store,
+    });
     if (nameFound && nameFound._id.toString() !== id) {
       throw new BadRequestException('Group name already exists');
     }
@@ -195,6 +210,14 @@ export class ProductGroupService {
     const tagsFound = await this.productService.findTagsByNames(tags);
     if (tagsFound.length !== tags.length) {
       throw new BadRequestException('Some tags do not exist');
+    }
+
+    const formulaFound = await this.formulaService.getFormulaById(
+      productGroup.store.toString(),
+      formula,
+    );
+    if (!formulaFound) {
+      throw new BadRequestException('Formula not found');
     }
 
     if (schedule) {
@@ -224,16 +247,34 @@ export class ProductGroupService {
     productGroup.description = description;
     productGroup.tags = tags;
     productGroup.products = productIds as mongoose.Types.ObjectId[];
-    productGroup.formula = formula;
-    productGroup.isScheduled = !!schedule;
-    productGroup.schedule = scheduleObject;
+    productGroup.formula = formulaFound._id as mongoose.Types.ObjectId;
     productGroup.isScraping = false;
+
+    if (!isScheduleSame(scheduleObject, productGroup.schedule)) {
+      productGroup.isScheduled = !!schedule;
+      productGroup.schedule = scheduleObject;
+
+      await this.queueService.cancelAllJobs(productGroup._id.toString());
+      console.log('Cancelled all jobs for group', productGroup._id.toString());
+
+      this.queueService.scheduleJob(
+        scheduleObject,
+        productGroup._id.toString(),
+        productGroup.store.toString(),
+      );
+    }
 
     const savedProduct = await productGroup.save();
 
-    // TODO: add queue job to schedule scraping
-
     return savedProduct;
+  }
+
+  async scheduleProductGroup(
+    storeId: string,
+    id: string,
+    schedule: ISchedule,
+  ): Promise<void> {
+    await this.queueService.scheduleJob(schedule, id, storeId);
   }
 
   async cancelProductGroupSchedule(

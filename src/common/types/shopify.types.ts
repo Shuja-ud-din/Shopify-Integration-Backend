@@ -5,6 +5,7 @@ interface IShopifyVariant {
   product_id: number;
   title: string;
   price: string;
+  compare_at_price: string;
   position: number;
   sku: string;
   created_at: string;
@@ -64,6 +65,7 @@ export interface IShopifyProductUpdate {
 
   price: number;
   inventory_quantity?: number;
+  compare_at_price?: number;
 }
 
 export interface IShopifyInventoryUpdate {

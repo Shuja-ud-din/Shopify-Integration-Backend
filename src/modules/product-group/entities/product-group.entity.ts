@@ -37,8 +37,8 @@ export class ProductGroup implements IProductGroup {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: User.name, required: true })
   user: mongoose.Types.ObjectId | IUserDoc;
 
-  @Prop({ default: '' })
-  formula: string;
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'Formula' })
+  formula: mongoose.Types.ObjectId;
 
   @Prop({ default: false })
   isScraping: boolean;
