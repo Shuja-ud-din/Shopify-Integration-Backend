@@ -42,6 +42,9 @@ export class Product implements IProduct {
   @Prop({ required: true })
   price: number;
 
+  @Prop({ type: Number, default: 0 })
+  cost: number;
+
   @Prop({ default: 0 })
   compareAtPrice: number;
 

@@ -18,6 +18,7 @@ export interface IProduct {
   image: string;
   sku: string;
   price: number;
+  cost: number;
   compareAtPrice: number;
   comparePriceFormula?: IFormula | mongoose.Types.ObjectId | null;
   inventoryQuantity: number;

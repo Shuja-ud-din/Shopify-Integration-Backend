@@ -285,6 +285,7 @@ export class ProductService {
       );
     }
 
+    productFound.cost = product.price;
     productFound.inventoryQuantity = product.stockQty;
     productFound.available = product.available;
     productFound.updatedAt = new Date();
