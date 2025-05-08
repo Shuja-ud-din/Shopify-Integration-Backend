@@ -15,6 +15,7 @@ import { ProductService } from '../product/product.service';
 import { QueueService } from '../queue/queue.service';
 import { ScraperService } from '../scraper/scraper.service';
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
+import { UpdateProductsGroupProductsDto } from './dtos/update-products-group.dto';
 import {
   IProductGroupDoc,
   ProductGroup,
@@ -192,7 +193,7 @@ export class ProductGroupService {
 
     const productGroup = await this.productGroupModel.findById(id);
     if (!productGroup) {
-      throw new BadRequestException('Group not found');
+      throw new NotFoundException('Group not found');
     }
 
     const nameFound = await this.productGroupModel.findOne({
@@ -217,7 +218,7 @@ export class ProductGroupService {
       formula,
     );
     if (!formulaFound) {
-      throw new BadRequestException('Formula not found');
+      throw new NotFoundException('Formula not found');
     }
 
     if (schedule) {
@@ -287,7 +288,7 @@ export class ProductGroupService {
     });
 
     if (!productGroup) {
-      throw new BadRequestException('Group not found');
+      throw new NotFoundException('Group not found');
     }
 
     productGroup.isScheduled = false;
@@ -303,10 +304,34 @@ export class ProductGroupService {
     });
 
     if (!productGroup) {
-      throw new BadRequestException('Group not found');
+      throw new NotFoundException('Group not found');
     }
 
     await productGroup.deleteOne();
     return true;
+  }
+
+  async updateProductGroupProducts(
+    id: string,
+    payload: UpdateProductsGroupProductsDto,
+  ): Promise<IProductGroupDoc> {
+    const { products } = payload;
+
+    const productGroup = await this.productGroupModel.findById(id);
+    if (!productGroup) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const productsFound = await this.productService.getProductsByIds(products);
+
+    if (productsFound.length !== products.length) {
+      throw new BadRequestException('Some products do not exist');
+    }
+
+    productGroup.products = productsFound.map(
+      (product) => product._id,
+    ) as mongoose.Types.ObjectId[];
+
+    return productGroup.save();
   }
 }

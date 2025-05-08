@@ -397,4 +397,10 @@ export class ProductService {
 
     return tags;
   }
+
+  async getProductsByIds(ids: string[]): Promise<IProductDoc[]> {
+    const products = await this.productModel.find({ _id: { $in: ids } });
+
+    return products;
+  }
 }
