@@ -92,6 +92,7 @@ export class ProductGroupController {
     return this.productGroupService.updateProductGroup(id, payload);
   }
 
+  @UseInterceptors(UpdateProductGroupInterceptor)
   @HttpCode(HttpStatus.OK)
   @Patch('/:id/products')
   @UseGuards(StoreGuard)
