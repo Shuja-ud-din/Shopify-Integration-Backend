@@ -18,8 +18,4 @@ export const EnvValidationSchema = Joi.object({
 
   // Redis
   REDIS_URL: Joi.string().required().default('redis://localhost:6379'),
-
-  // Shopify
-  SHOPIFY_ACCESS_TOKEN: Joi.string().required(),
-  SHOPIFY_STORE: Joi.string().required(),
 });

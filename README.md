@@ -122,10 +122,6 @@ JWT_EXPIRES_IN=24h
 
 # Redis
 REDIS_URL=redis://localhost:6379
-
-# Shopify
-SHOPIFY_ACCESS_TOKEN=your-shopify-access-token
-SHOPIFY_STORE=your-store.myshopify.com
 ```
 
 ## Installation 🔧
