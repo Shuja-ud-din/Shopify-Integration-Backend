@@ -1,12 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-import { EndScheduleOn, RepeatUnit } from 'src/common/enums/schedule.enum';
-import { IProductGroup } from 'src/common/types/product.types';
+
+import { EndScheduleOn, RepeatUnit } from '@/common/enums/schedule.enum';
+import { IProductGroup } from '@/common/types/product.types';
 import {
   IShopifyStoreDoc,
   ShopifyStore,
-} from 'src/modules/shopify/entities/shopifyStore.entity';
-import { IUserDoc, User } from 'src/modules/user/entities/user.entity';
+} from '@/modules/shopify/entities/shopifyStore.entity';
+import { IUserDoc, User } from '@/modules/user/entities/user.entity';
 
 export type IProductGroupDoc = IProductGroup & Document;
 

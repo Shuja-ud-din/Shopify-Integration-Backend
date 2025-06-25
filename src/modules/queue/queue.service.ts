@@ -1,9 +1,10 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { QUEUE_NAME } from 'src/common/constants/constants';
-import { ISchedule } from 'src/common/types/schedule.types';
-import { getDelay } from 'src/common/utils/dateTime';
+
+import { QUEUE_NAME } from '@/common/constants/constants';
+import { ISchedule } from '@/common/types/schedule.types';
+import { getDelay } from '@/common/utils/dateTime';
 
 @Injectable()
 export class QueueService {

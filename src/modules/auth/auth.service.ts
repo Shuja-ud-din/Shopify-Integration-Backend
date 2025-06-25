@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { generateToken } from 'src/common/utils/token';
+
+import { generateToken } from '@/common/utils/token';
 
 import { UserService } from '../user/user.service';
 

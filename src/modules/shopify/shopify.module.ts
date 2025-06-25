@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
+
+import { AuthMiddleware } from '@/common/middlewares/auth.middleware';
 
 import { User, UserSchema } from '../user/entities/user.entity';
 import {

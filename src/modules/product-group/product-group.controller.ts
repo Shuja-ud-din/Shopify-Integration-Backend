@@ -13,9 +13,10 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { User } from 'src/common/decorators/user.decorator';
-import { StoreGuard } from 'src/common/guards/store.guard';
-import { ITokenPayload } from 'src/common/utils/token';
+
+import { User } from '@/common/decorators/user.decorator';
+import { StoreGuard } from '@/common/guards/store.guard';
+import { ITokenPayload } from '@/common/utils/token';
 
 import { CreateProductGroupDto } from './dtos/create-product-group.dto';
 import { UpdateProductsGroupProductsDto } from './dtos/update-products-group.dto';

@@ -12,7 +12,8 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { StoreGuard } from 'src/common/guards/store.guard';
+
+import { StoreGuard } from '@/common/guards/store.guard';
 
 import { CreateFormulaDto } from './dtos/create-formula.dto';
 import { FormulaService } from './formula.service';

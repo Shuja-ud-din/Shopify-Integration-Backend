@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
+
 import {
   IScapedProduct,
   IScrapperPayloadProduct,
-} from 'src/common/types/product.types';
-import { IProductDoc } from 'src/modules/product/entities/product.entity';
+} from '@/common/types/product.types';
+import { IProductDoc } from '@/modules/product/entities/product.entity';
 
 @Injectable()
 export class ScraperService {

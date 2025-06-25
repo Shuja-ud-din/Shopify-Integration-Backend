@@ -8,16 +8,11 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return this.appService.getHello();
+    return this.appService.getWelcomeMessage();
   }
 
   @Get('health')
   healthCheck() {
-    return 'Server is UP and RUNNING... 🚀';
-  }
-
-  @Get('seed')
-  seed() {
-    return this.appService.seedData();
+    return this.appService.getHealth();
   }
 }

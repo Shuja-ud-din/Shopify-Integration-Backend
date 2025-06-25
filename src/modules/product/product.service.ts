@@ -8,7 +8,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { evaluate } from 'mathjs';
 import { Model } from 'mongoose';
 import mongoose from 'mongoose';
-import { IProduct, IScapedProduct } from 'src/common/types/product.types';
+
+import { IProduct, IScapedProduct } from '@/common/types/product.types';
 
 import { FormulaService } from '../formula/formula.service';
 import { ScraperService } from '../scraper/scraper.service';

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { IUserDoc } from 'src/modules/user/entities/user.entity';
+
+import { IUserDoc } from '@/modules/user/entities/user.entity';
 
 export interface IUser {
   name: string;

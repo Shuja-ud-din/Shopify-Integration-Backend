@@ -7,8 +7,9 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import axios, { AxiosInstance } from 'axios';
 import { Model } from 'mongoose';
-import { ShopifyRequiredScopes } from 'src/common/constants/shopifyScopes';
-import { IGetProductsResponse } from 'src/common/types/product.types';
+
+import { ShopifyRequiredScopes } from '@/common/constants/shopifyScopes';
+import { IGetProductsResponse } from '@/common/types/product.types';
 import {
   IShopifyAccessScopeResponse,
   IShopifyInventoryUpdate,
@@ -18,7 +19,7 @@ import {
   IShopifyStoreInfoResponse,
   IShopifyStoreLocation,
   IShopifyStoreLocationsResponse,
-} from 'src/common/types/shopify.types';
+} from '@/common/types/shopify.types';
 
 import { User } from '../user/entities/user.entity';
 import { IntegrateStoreDto } from './dtos/integrate-store.dto';

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { IProductDoc } from 'src/modules/product/entities/product.entity';
+
+import { IProductDoc } from '@/modules/product/entities/product.entity';
 
 import { ShopifyProductStatus } from '../enums/product.enum';
 import { ISchedule } from './schedule.types';
