@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 
 import { ShopifyProductStatus } from '@/common/enums/product.enum';
-import { IProduct } from '@/common/types/product.types';
+import { IProduct, IScapedProduct } from '@/common/types/product.types';
 import {
   IShopifyStoreDoc,
   ShopifyStore,
@@ -60,6 +60,9 @@ export class Product implements IProduct {
 
   @Prop({ default: [] })
   scrapperUrls: string[];
+
+  @Prop({ default: [] })
+  scrapperResults: IScapedProduct[];
 
   @Prop({ default: false })
   hasChanges: boolean;

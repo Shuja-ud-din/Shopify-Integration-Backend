@@ -121,6 +121,11 @@ export class ScraperService {
     return results[0];
   }
 
+  async updateScrapperResults(product: IProductDoc, results: IScapedProduct[]) {
+    product.scrapperResults = results;
+    await product.save();
+  }
+
   async scrapeProducts(products: IProductDoc[]): Promise<IScapedProduct[]> {
     const ebayProducts: IScrapperPayloadProduct[] = [];
     const costcoProducts: IScrapperPayloadProduct[] = [];
@@ -149,6 +154,13 @@ export class ScraperService {
         return this.getCostcoProducts(products);
       }),
     ]);
+
+    for (const product of products) {
+      await this.updateScrapperResults(product, [
+        ...ebayResults,
+        ...costcoResults,
+      ]);
+    }
 
     const filteredResults = this.filterBestResults([
       ...ebayResults,

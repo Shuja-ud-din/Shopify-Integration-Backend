@@ -25,6 +25,7 @@ export interface IProduct {
   inventoryQuantity: number;
   profitMargin?: number;
   scrapperUrls: string[];
+  scrapperResults: IScapedProduct[];
   hasChanges: boolean;
   available: boolean;
   shopifyUpdateBlocked: boolean;

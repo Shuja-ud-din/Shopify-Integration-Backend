@@ -63,7 +63,7 @@ export class FormulaService {
       name: payload.name,
       store,
     });
-    if (existingFormula) {
+    if (existingFormula && existingFormula._id.toString() !== id) {
       throw new BadRequestException('Formula with this name already exists');
     }
 

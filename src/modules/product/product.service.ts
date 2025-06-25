@@ -243,6 +243,8 @@ export class ProductService {
   ): Promise<IProductDoc> {
     const productFound = await this.getProductById(storeId, product.id);
 
+    console.log(product);
+
     if (formula) {
       const scope = {
         PRICE: product.price,
@@ -252,6 +254,7 @@ export class ProductService {
       try {
         productFound.price = parseFloat(evaluate(formula, scope).toFixed(2));
       } catch (error) {
+        console.log(error);
         throw new Error(`Invalid formula: ${formula}`);
       }
     } else {
@@ -278,6 +281,7 @@ export class ProductService {
           );
         }
       } catch (error) {
+        console.log(error);
         throw new Error(`Invalid formula: ${productFound.comparePriceFormula}`);
       }
     } else {
