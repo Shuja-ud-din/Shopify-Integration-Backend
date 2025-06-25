@@ -8,7 +8,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Request } from 'express';
 import { Model } from 'mongoose';
-import { User } from 'src/modules/user/entities/user.entity';
+
+import { User } from '@/modules/user/entities/user.entity';
 
 @Injectable()
 export class StoreGuard implements CanActivate {

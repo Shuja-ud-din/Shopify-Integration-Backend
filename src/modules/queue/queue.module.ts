@@ -1,7 +1,8 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { QUEUE_NAME } from 'src/common/constants/constants';
+
+import { QUEUE_NAME } from '@/common/constants/constants';
 
 import { ProcessorModule } from './processor/processor.module';
 import { QueueService } from './queue.service';

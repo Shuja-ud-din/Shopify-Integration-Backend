@@ -1,9 +1,10 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Job, Worker } from 'bullmq';
 import Redis from 'ioredis';
-import { QUEUE_NAME } from 'src/common/constants/constants';
-import { EndScheduleOn } from 'src/common/enums/schedule.enum';
-import { ProductGroupService } from 'src/modules/product-group/product-group.service';
+
+import { QUEUE_NAME } from '@/common/constants/constants';
+import { EndScheduleOn } from '@/common/enums/schedule.enum';
+import { ProductGroupService } from '@/modules/product-group/product-group.service';
 
 @Injectable()
 export class QueueProcessor implements OnModuleInit {

@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { ProductGroupModule } from 'src/modules/product-group/product-group.module';
-import { RedisModule } from 'src/modules/redis/redis.module';
+
+import { ProductGroupModule } from '@/modules/product-group/product-group.module';
+import { RedisModule } from '@/modules/redis/redis.module';
 
 import { QueueProcessor } from './queue.processor';
 

@@ -1,11 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema, Types } from 'mongoose';
-import { ShopifyProductStatus } from 'src/common/enums/product.enum';
-import { IProduct } from 'src/common/types/product.types';
+
+import { ShopifyProductStatus } from '@/common/enums/product.enum';
+import { IProduct } from '@/common/types/product.types';
 import {
   IShopifyStoreDoc,
   ShopifyStore,
-} from 'src/modules/shopify/entities/shopifyStore.entity';
+} from '@/modules/shopify/entities/shopifyStore.entity';
 
 @Schema()
 export class Product implements IProduct {

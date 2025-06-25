@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { IFormulaDoc } from 'src/modules/formula/entities/formula.entity';
+
+import { IFormulaDoc } from '@/modules/formula/entities/formula.entity';
 
 import { IProductGroupDoc } from '../entities/product-group.entity';
 

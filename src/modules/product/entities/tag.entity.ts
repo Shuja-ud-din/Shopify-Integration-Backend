@@ -1,10 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
-import { ITag } from 'src/common/types/product.types';
+
+import { ITag } from '@/common/types/product.types';
 import {
   IShopifyStoreDoc,
   ShopifyStore,
-} from 'src/modules/shopify/entities/shopifyStore.entity';
+} from '@/modules/shopify/entities/shopifyStore.entity';
 
 @Schema()
 export class Tag implements ITag {

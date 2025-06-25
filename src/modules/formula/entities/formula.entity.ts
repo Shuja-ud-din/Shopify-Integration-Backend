@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Schema as MongooseSchema } from 'mongoose';
-import { IFormula } from 'src/common/types/product.types';
-import { ShopifyStore } from 'src/modules/shopify/entities/shopifyStore.entity';
+
+import { IFormula } from '@/common/types/product.types';
+import { ShopifyStore } from '@/modules/shopify/entities/shopifyStore.entity';
 
 @Schema()
 export class Formula implements IFormula {

@@ -7,7 +7,8 @@ import {
   ValidationOptions,
 } from 'class-validator';
 import { evaluate, MathNode, parse } from 'mathjs';
-import { ALLOWED_VARIABLES } from 'src/common/constants/constants';
+
+import { ALLOWED_VARIABLES } from '@/common/constants/constants';
 
 export function IsValidFormula(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {

@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
-import { IShopifyStore } from 'src/common/types/user.types';
-import { IUserDoc, User } from 'src/modules/user/entities/user.entity';
+
+import { IShopifyStore } from '@/common/types/user.types';
+import { IUserDoc, User } from '@/modules/user/entities/user.entity';
 
 @Schema()
 export class ShopifyStore implements IShopifyStore {

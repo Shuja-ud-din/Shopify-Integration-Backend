@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { IUser } from 'src/common/types/user.types';
+
+import { IUser } from '@/common/types/user.types';
 
 import { IUserDoc, User } from './entities/user.entity';
 

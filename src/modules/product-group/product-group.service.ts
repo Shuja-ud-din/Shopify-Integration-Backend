@@ -5,9 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { IFormula, IScapedProduct } from 'src/common/types/product.types';
-import { ISchedule } from 'src/common/types/schedule.types';
-import { isScheduleSame, isValidScheduleDate } from 'src/common/utils/dateTime';
+
+import { IFormula, IScapedProduct } from '@/common/types/product.types';
+import { ISchedule } from '@/common/types/schedule.types';
+import { isScheduleSame, isValidScheduleDate } from '@/common/utils/dateTime';
 
 import { FormulaService } from '../formula/formula.service';
 import { IProductDoc } from '../product/entities/product.entity';

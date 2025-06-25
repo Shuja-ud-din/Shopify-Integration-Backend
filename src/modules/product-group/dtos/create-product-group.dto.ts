@@ -12,7 +12,8 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { EndScheduleOn, RepeatUnit } from 'src/common/enums/schedule.enum';
+
+import { EndScheduleOn, RepeatUnit } from '@/common/enums/schedule.enum';
 
 class EndScheduleDto {
   @IsEnum(EndScheduleOn)
